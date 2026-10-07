@@ -34,3 +34,35 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Server secrets
+.env
+.env.*
+!.env.example
+
+/test-results/
+/playwright-report/
+
+# Local tools and caches
+/.agents/
+/.codex/
+/.cache/
+/.turbo/
+/CLAUDE.md
+
+# Local conversations and unused design references
+/saves chat
+/image.png
+/DealMile Minimalist Blue Logo.png
+
+# Test/browser artifacts
+/blob-report/
+/playwright/.cache/
+
+# Logs, database dumps, and private keys
+*.log
+*.sql.gz
+*.dump
+*.key
+*.p12
+*.pfx

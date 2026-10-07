@@ -1,0 +1,7 @@
+ALTER TYPE "ChangeStatus" ADD VALUE 'ANALYZING';
+ALTER TABLE "ChangeRequest"
+  ADD COLUMN "scopeSnapshot" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN "proposedTitle" TEXT,
+  ADD COLUMN "proposedDescription" TEXT,
+  ADD COLUMN "resolutionNote" TEXT,
+  ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

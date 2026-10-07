@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  DEVELOPER
+}
+
+enum ProjectStatus {
+  DRAFT
+  AI_PLANNING
+  PENDING_DEVELOPER_REVIEW
+  DEVELOPER_REVIEW
+  CLIENT_REVIEW
+  AGREED
+  ACTIVE
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  LOCKED
+  AWAITING_PAYMENT
+  FUNDED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+  CANCELLED
+}
+
+enum ChangeStatus {
+  ANALYZING
+  PENDING
+  DEVELOPER_REVIEW
+  CLIENT_REVIEW
+  APPROVED
+  REJECTED
+  INCLUDED
+}
+
+enum PaymentStatus {
+  CREATED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id                String        @id @default(cuid())
+  name              String
+  email             String        @unique
+  passwordHash      String
+  role              Role
+  createdAt         DateTime      @default(now())
+  sessions          Session[]
+  clientProjects    Project[]     @relation("ClientProjects")
+  developerProjects Project[]     @relation("DeveloperProjects")
+  activities        ActivityLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthAttempt {
+  key         String   @id
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+}
+
+model Project {
+  id                  String             @id @default(cuid())
+  name                String
+  type                String
+  requirements        String
+  summary             String?
+  budget              Decimal            @db.Decimal(12, 2)
+  currency            String             @default("USD") @db.VarChar(3)
+  deadline            DateTime
+  status              ProjectStatus      @default(DRAFT)
+  clientId            String
+  client              User               @relation("ClientProjects", fields: [clientId], references: [id])
+  developerId         String?
+  developer           User?              @relation("DeveloperProjects", fields: [developerId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  scope               ProjectScope[]
+  milestones          Milestone[]
+  revisions           ProposalRevision[]
+  changes             ChangeRequest[]
+  analyses            AIAnalysis[]
+  activities          ActivityLog[]
+  cancellations       CancellationRequest[]
+  paymentHold         Boolean            @default(false)
+  paymentOperationKey String?
+  paymentBusyUntil    DateTime?
+
+  @@index([clientId, status])
+  @@index([developerId, status])
+}
+
+model ProjectScope {
+  id          String  @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description String
+  position    Int
+
+  @@unique([projectId, position])
+}
+
+model Milestone {
+  id             String              @id @default(cuid())
+  projectId      String
+  project        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  amount         Decimal             @db.Decimal(12, 2)
+  estimatedDays  Int
+  position       Int
+  status         MilestoneStatus     @default(LOCKED)
+  payments       Payment[]
+  change         ChangeRequest?
+  submissionNote String?
+  submittedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  dueAt          DateTime?
+  extensions     DeadlineExtension[]
+  deliveryCases  DeliveryCase[]
+  reminders      DeliveryReminder[]
+
+  @@unique([projectId, position])
+}
+
+model ProposalRevision {
+  id         String    @id @default(cuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version    Int
+  summary    String
+  snapshot   Json
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([projectId, version])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  milestoneId       String        @unique
+  milestone         Milestone     @relation(fields: [milestoneId], references: [id])
+  amount            Decimal       @db.Decimal(12, 2)
+  currency          String        @db.VarChar(3)
+  status            PaymentStatus @default(CREATED)
+  paypalOrderId     String?       @unique
+  paypalCaptureId   String?       @unique
+  requestKey        String        @unique @default(cuid())
+  paypalPayeeId     String?
+  verifiedAt        DateTime?
+  webhookVerifiedAt DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  paypalRefundId    String?       @unique
+  refundVerifiedAt  DateTime?
+
+  @@index([milestoneId])
+}
+
+model WebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
+
+model ChangeRequest {
+  id                  String       @id @default(cuid())
+  projectId           String
+  project             Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description         String
+  status              ChangeStatus @default(PENDING)
+  scopeSnapshot       String[]     @default([])
+  proposedTitle       String?
+  proposedDescription String?
+  resolutionNote      String?
+  updatedAt           DateTime     @default(now()) @updatedAt
+  proposedAmount      Decimal?     @db.Decimal(12, 2)
+  proposedDays        Int?
+  milestoneId         String?      @unique
+  milestone           Milestone?   @relation(fields: [milestoneId], references: [id])
+  analysis            AIAnalysis?
+  createdAt           DateTime     @default(now())
+
+  @@index([projectId, status])
+}
+
+model AIAnalysis {
+  id              String         @id @default(cuid())
+  projectId       String
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changeRequestId String?        @unique
+  changeRequest   ChangeRequest? @relation(fields: [changeRequestId], references: [id])
+  kind            String
+  provider        String
+  result          Json
+  createdAt       DateTime       @default(now())
+
+  @@index([projectId])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId     String
+  actor       User     @relation(fields: [actorId], references: [id])
+  action      String
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+model DeadlineExtension {
+  id             String    @id @default(cuid())
+  milestoneId    String
+  milestone      Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  previousDueAt  DateTime
+  requestedDueAt DateTime
+  reason         String
+  status         String    @default("PENDING")
+  decidedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([milestoneId, status])
+}
+
+model DeliveryCase {
+  id               String    @id @default(cuid())
+  milestoneId      String
+  milestone        Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  reason           String
+  evidence         String
+  status           String    @default("OPEN")
+  response         String?
+  resolution       String?
+  proposedDueAt    DateTime?
+  refundRequestKey String    @unique @default(cuid())
+  approvedAt       DateTime?
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  cancellation     CancellationRequest?
+
+  @@index([milestoneId, status])
+}
+
+model CancellationRequest {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requestedById  String
+  reason         String
+  status         String   @default("PENDING")
+  settlement     Json
+  decidedById    String?
+  decisionNote   String?
+  decidedAt      DateTime?
+  deliveryCaseId String?  @unique
+  deliveryCase   DeliveryCase? @relation(fields: [deliveryCaseId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([projectId, status])
+}
+
+model DeliveryReminder {
+  id          String    @id @default(cuid())
+  milestoneId String
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  dueAt       DateTime
+  kind        String
+  createdAt   DateTime  @default(now())
+
+  @@unique([milestoneId, dueAt, kind])
+}
