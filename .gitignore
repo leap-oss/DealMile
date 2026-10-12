@@ -41,6 +41,7 @@ next-env.d.ts
 !.env.example
 
 /test-results/
+/tests/
 /playwright-report/
 
 # Local tools and caches
@@ -58,6 +59,19 @@ next-env.d.ts
 # Test/browser artifacts
 /blob-report/
 /playwright/.cache/
+
+# Local development setup and project notes (not required for deployment)
+/.devcontainer/
+/.vscode/
+/AGENTS.md
+/agent.md
+/agents.md
+/DESIGN.md
+/design.md
+/IMPLEMENTATION.md
+/implementation.md
+/plan.md
+/playwright.config.ts
 
 # Logs, database dumps, and private keys
 *.log
