@@ -22,6 +22,9 @@ export function WorkspaceShell({
   const root = user.role === "CLIENT" ? "/dashboard" : "/developer";
   return (
     <div className="workspace-shell">
+      <a href="#workspace-content" className="product-skip-link">
+        Skip to content
+      </a>
       <aside className="workspace-sidebar">
         <Brand />
         <span className="workspace-label">
@@ -100,7 +103,13 @@ export function WorkspaceShell({
             </button>
           </form>
         </header>
-        <main className="workspace-content">{children}</main>
+        <main
+          id="workspace-content"
+          tabIndex={-1}
+          className="workspace-content"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

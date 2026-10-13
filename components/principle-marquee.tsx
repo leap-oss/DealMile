@@ -5,6 +5,10 @@ export function PrincipleMarquee() {
       className="principle-strip principle-marquee"
       aria-label="How DealMile works"
     >
+      <span id="marquee-keyboard-hint" className="sr-only">
+        Scrolling pauses while this section has keyboard focus or the pointer is
+        over it.
+      </span>
       <div className="marquee-viewport">
         <div className="marquee-track">
           {[false, true].map((duplicate) => (
@@ -13,9 +17,17 @@ export function PrincipleMarquee() {
               key={String(duplicate)}
               aria-hidden={duplicate || undefined}
             >
-              <span className="marquee-intro">
-                A better way to work together.
-              </span>
+              {duplicate ? (
+                <span className="marquee-intro">Explore the workflow</span>
+              ) : (
+                <a
+                  href="#how-it-works"
+                  className="marquee-intro"
+                  aria-describedby="marquee-keyboard-hint"
+                >
+                  Explore the workflow
+                </a>
+              )}
               <span>
                 <Sparkles size={18} aria-hidden="true" />
                 <strong>AI understands the scope</strong>

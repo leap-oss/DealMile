@@ -1,12 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowUpRight,
   Check,
   CheckCheck,
-  ChevronRight,
-  FileText,
-  Flag,
   LockKeyhole,
   Plus,
   ScanLine,
@@ -15,32 +12,23 @@ import {
 const steps = ["Plan", "Agree", "Pay", "Adapt"];
 export function WorkflowPreview() {
   const [step, setStep] = useState(0);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   return (
     <div className="preview-wrap">
       <div className="preview-label">
-        <span className="live-dot" /> A LITTLE CLARITY GOES A LONG WAY{" "}
-        <span>Product preview</span>
+        <span>Interactive workflow</span>
+        <span>Example project · Sandbox</span>
       </div>
       <div className="workspace-preview">
-        <div className="preview-sidebar">
-          <span className="mini-mark">d.</span>
-          <FileText size={19} />
-          <Flag size={19} />
-          <ScanLine size={19} />
-          <div className="mini-avatar">JD</div>
-        </div>
         <div className="preview-main">
           <div className="preview-top">
-            <span>
-              Workspace <ChevronRight size={13} /> E-commerce website
-            </span>
-            <span className="preview-dots">•••</span>
+            <span>Proposed milestone plan</span>
+            <span>Human review required</span>
           </div>
           <div className="preview-heading">
             <div>
-              <span className="eyebrow">PROJECT OVERVIEW</span>
               <h3>E-commerce website</h3>
-              <p>A shared plan. A confident next step.</p>
+              <p>Scope and budget for an example website.</p>
             </div>
             <span className="status">
               <span />
@@ -75,6 +63,27 @@ export function WorkflowPreview() {
             {steps.map((s, i) => (
               <button
                 key={s}
+                ref={(element) => {
+                  tabs.current[i] = element;
+                }}
+                tabIndex={step === i ? 0 : -1}
+                onKeyDown={(event) => {
+                  const next =
+                    event.key === "ArrowRight"
+                      ? (i + 1) % steps.length
+                      : event.key === "ArrowLeft"
+                        ? (i + steps.length - 1) % steps.length
+                        : event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? steps.length - 1
+                            : null;
+                  if (next !== null) {
+                    event.preventDefault();
+                    setStep(next);
+                    tabs.current[next]?.focus();
+                  }
+                }}
                 role="tab"
                 id={`tab-${i}`}
                 aria-controls="preview-panel"
@@ -90,6 +99,7 @@ export function WorkflowPreview() {
           <div
             id="preview-panel"
             role="tabpanel"
+            tabIndex={0}
             aria-labelledby={`tab-${step}`}
             className="preview-content"
           >
@@ -105,6 +115,7 @@ export function WorkflowPreview() {
                   ["01", "Discovery & design", "$150", "5 days"],
                   ["02", "Frontend development", "$250", "7 days"],
                   ["03", "Backend & integrations", "$400", "12 days"],
+                  ["04", "Testing & delivery", "$200", "6 days"],
                 ].map(([n, t, a, d]) => (
                   <div className="preview-milestone" key={n}>
                     <span className="milestone-number">{n}</span>
@@ -113,7 +124,6 @@ export function WorkflowPreview() {
                       <span>{d} · Defined deliverables</span>
                     </div>
                     <b>{a}</b>
-                    <ChevronRight size={15} />
                   </div>
                 ))}
               </>
@@ -175,15 +185,6 @@ export function WorkflowPreview() {
             </span>
             <span>Example project</span>
           </div>
-        </div>
-      </div>
-      <div className="clarity-note">
-        <span>
-          <Check size={16} />
-        </span>
-        <div>
-          <strong>Good work starts with a good agreement.</strong>
-          <p>Less back-and-forth. More moving forward.</p>
         </div>
       </div>
     </div>

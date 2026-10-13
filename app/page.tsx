@@ -1,22 +1,44 @@
+import "./landing.css";
 import Link from "next/link";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import {
   ArrowRight,
   ArrowUpRight,
   Check,
-  FileCheck2,
-  Flag,
   GitCompareArrows,
   MoveUpRight,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { Brand } from "@/components/brand";
+import { AgreementPreview } from "@/components/agreement-preview";
 import { WorkflowPreview } from "@/components/workflow-preview";
 import { buttonVariants } from "@/components/ui/button";
 import { PrincipleMarquee } from "@/components/principle-marquee";
+const landingFont = Geist({
+  subsets: ["latin"],
+  variable: "--dm-geist",
+  display: "swap",
+});
+const landingMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--dm-geist-mono",
+  display: "swap",
+});
+const landingDisplay = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--dm-editorial",
+  display: "swap",
+});
 export default function Home() {
   return (
-    <>
+    <div
+      className={`landing-page hallmark-landing ${landingFont.variable} ${landingMono.variable} ${landingDisplay.variable}`}
+    >
+      <a className="landing-skip-link" href="#landing-content">
+        Skip to content
+      </a>
       <header className="public-header">
         <div className="public-header-content container">
           <Brand />
@@ -35,26 +57,19 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <main>
+      <main id="landing-content" tabIndex={-1}>
         <section className="hero container">
           <div className="hero-copy">
             <div className="hero-kicker">
-              <span className="tiny-diamond" /> CLEAR SCOPE. CONFIDENT
-              COLLABORATION.
+              Client–developer agreements · PayPal Sandbox
             </div>
             <h1>
-              Great projects.
-              <br />
               Clear agreements.
-              <br />
-              <span>Every milestone.</span>
+              <span>Work paid by milestone.</span>
             </h1>
             <p>
-              Turn your project idea into a shared plan.
-              <br className="desktop-break" /> Agree on the work, pay by
-              milestone, and keep
-              <br className="desktop-break" /> scope changes from becoming
-              surprises.
+              Define the scope, agree on the budget, and pay for approved work.
+              When requirements change, review the proposal together.
             </p>
             <div className="hero-actions">
               <Link href="/register" className={buttonVariants()}>
@@ -65,71 +80,64 @@ export default function Home() {
               </a>
             </div>
             <div className="hero-assurance">
-              <ShieldCheck size={15} /> AI recommends. You decide.
+              <ShieldCheck size={15} /> AI drafts the plan. Both partners
+              approve.
             </div>
           </div>
-          <WorkflowPreview />
+          <AgreementPreview />
         </section>
         <PrincipleMarquee />
-        <section id="how-it-works" className="how-section container">
+        <section
+          id="how-it-works"
+          className="how-section container"
+          aria-label="Project workflow"
+        >
           <div className="section-heading">
             <div>
-              <span className="eyebrow">
-                FROM “I HAVE AN IDEA” TO “LET’S BUILD IT”
-              </span>
               <h2>
-                Less guesswork.
+                From requirements
                 <br />
-                More common ground.
+                to approved work.
               </h2>
             </div>
             <p>
-              One connected workflow for everything
-              <br className="desktop-break" /> that happens between an idea and
-              delivery.
+              Scope, agreements, delivery, and payment stay connected throughout
+              the project.
             </p>
           </div>
-          <div className="steps-grid">
-            {[
-              {
-                icon: Sparkles,
-                title: "Plan with clarity",
-                text: "Describe your idea. AI helps turn requirements into scope, milestones, and a realistic starting point.",
-                label: "A shared understanding",
-              },
-              {
-                icon: FileCheck2,
-                title: "Agree together",
-                text: "Review the details, refine the proposal, and approve what you’re building before work begins.",
-                label: "No assumptions",
-              },
-              {
-                icon: Flag,
-                title: "Pay by milestone",
-                text: "Connect approved work to PayPal payments. Every payment has a clear purpose and a next step.",
-                label: "Progress you can see",
-              },
-              {
-                icon: GitCompareArrows,
-                title: "Adapt without friction",
-                text: "New requirements happen. Compare them with your agreement and decide on additional work together.",
-                label: "Changes without surprises",
-              },
-            ].map((item, i) => (
-              <article className="step-card" key={item.title}>
-                <div className="step-top">
-                  <span className="step-icon">
-                    <item.icon size={22} strokeWidth={1.6} />
-                  </span>
-                  <span className="step-count">0{i + 1}</span>
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <div className="step-label">
-                  <span /> {item.label}
-                </div>
-              </article>
-            ))}
+          <div className="landing-workbench">
+            <WorkflowPreview />
+            <div className="workbench-guide">
+              {" "}
+              <div className="steps-grid">
+                {[
+                  {
+                    title: "Define the scope",
+                    text: "Describe your idea. AI helps turn requirements into scope, milestones, and a realistic starting point.",
+                  },
+                  {
+                    title: "Agree together",
+                    text: "Review the details, refine the proposal, and approve what you’re building before work begins.",
+                  },
+                  {
+                    title: "Pay by milestone",
+                    text: "Connect approved work to PayPal payments. Every payment has a clear purpose and a next step.",
+                  },
+                  {
+                    title: "Review scope changes",
+                    text: "New requirements happen. Compare them with your agreement and decide on additional work together.",
+                  },
+                ].map((item, i) => (
+                  <article className="step-card" key={item.title}>
+                    <div className="step-top">
+                      <span className="step-count">0{i + 1}</span>
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
         <section id="why-dealmile" className="scope-section container">
@@ -186,15 +194,9 @@ export default function Home() {
             </div>
           </div>
           <div className="scope-copy">
-            <span className="eyebrow">
-              KEEP THE RELATIONSHIP. LOSE THE SCOPE CREEP.
-            </span>
             <h2>
-              “One small change”
-              <br />
-              deserves a clear
-              <br />
-              <span>conversation.</span>
+              Know when a request
+              <span>changes the deal.</span>
             </h2>
             <p>
               Extra work shouldn’t mean awkward conversations. DealMile helps
@@ -202,7 +204,7 @@ export default function Home() {
               what’s included—and what needs a new agreement.
             </p>
             <a href="#how-it-works" className="text-link">
-              Meet scope intelligence <ArrowRight size={17} />
+              Review the workflow <ArrowRight size={17} />
             </a>
             <div className="human-note">
               <ShieldCheck size={19} />
@@ -217,11 +219,10 @@ export default function Home() {
         <section id="built-for" className="audience-section container">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">TWO SIDES. ONE SHARED PLAN.</span>
               <h2>
-                Built for people
+                A shared agreement.
                 <br />
-                who build together.
+                Two clear roles.
               </h2>
             </div>
             <p>
@@ -232,32 +233,47 @@ export default function Home() {
           </div>
           <div className="audience-grid">
             <article>
-              <span className="eyebrow">FOR CLIENTS</span>
-              <h3>Your idea, with a clear path forward.</h3>
-              <p>
-                Understand what you’re getting, when it’s arriving, and what
-                each milestone costs.
-              </p>
-              <Link href="/register?role=CLIENT" className="text-link">
-                Bring your idea <ArrowUpRight size={17} />
+              <Link
+                href="/register?role=CLIENT"
+                className="audience-card-link"
+                aria-labelledby="client-action"
+                aria-describedby="client-description"
+              >
+                <span className="eyebrow">For clients</span>
+                <h3>Know what you’re paying for.</h3>
+                <p id="client-description">
+                  Understand what you’re getting, when it’s arriving, and what
+                  each milestone costs.
+                </p>
+                <span id="client-action" className="text-link">
+                  Start a client project{" "}
+                  <ArrowUpRight size={17} aria-hidden="true" />
+                </span>
               </Link>
             </article>
             <article>
-              <span className="eyebrow">FOR DEVELOPERS</span>
-              <h3>Your work, with the boundaries it deserves.</h3>
-              <p>
-                Start with aligned expectations and turn additional requirements
-                into reviewed proposals.
-              </p>
-              <Link href="/register?role=DEVELOPER" className="text-link">
-                Build with confidence <ArrowUpRight size={17} />
+              <Link
+                href="/register?role=DEVELOPER"
+                className="audience-card-link"
+                aria-labelledby="developer-action"
+                aria-describedby="developer-description"
+              >
+                <span className="eyebrow">For developers</span>
+                <h3>Make the scope explicit.</h3>
+                <p id="developer-description">
+                  Start with aligned expectations and turn additional
+                  requirements into reviewed proposals.
+                </p>
+                <span id="developer-action" className="text-link">
+                  Join as a developer{" "}
+                  <ArrowUpRight size={17} aria-hidden="true" />
+                </span>
               </Link>
             </article>
           </div>
         </section>
         <section className="cta-section container">
           <div>
-            <span className="eyebrow">START ON THE SAME PAGE.</span>
             <h2>
               Every milestone starts
               <br />
@@ -266,9 +282,9 @@ export default function Home() {
           </div>
           <div>
             <Link href="/register" className={buttonVariants()}>
-              Let’s make it clear <MoveUpRight size={19} />
+              Start a project <MoveUpRight size={19} />
             </Link>
-            <p>A little structure. A lot more confidence.</p>
+            <p>PayPal Sandbox demo · No live payments</p>
           </div>
         </section>
       </main>
@@ -280,7 +296,7 @@ export default function Home() {
         </a>
         <span>© {new Date().getFullYear()} DealMile</span>
       </footer>
-    </>
+    </div>
   );
 }
 function ScanBadge() {

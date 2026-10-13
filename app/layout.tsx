@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./product.css";
 export const metadata: Metadata = {
   title: {
     default: "DealMile — Every milestone starts with a clear deal",

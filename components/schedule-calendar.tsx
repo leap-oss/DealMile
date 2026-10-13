@@ -1,6 +1,5 @@
 "use client";
 import { useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
 import {
   BryntumCalendar,
   BryntumCalendarProjectModel,
@@ -26,7 +25,6 @@ export default function ScheduleCalendar({
   now: string;
 }) {
   const project = useRef<BryntumCalendarProjectModel>(null);
-  const router = useRouter();
   const projectConfig = useMemo<BryntumCalendarProjectModelProps>(
     () => ({ events: calendarEvents(items, new Date(now).getTime()) }),
     [items, now],
@@ -37,7 +35,7 @@ export default function ScheduleCalendar({
       readOnly: true,
       date: new Date(now),
       timeZone: "UTC",
-      height: 620,
+      height: "clamp(580px, 76dvh, 880px)",
       sidebar: false,
       mode: "month",
       modes: {
@@ -48,15 +46,34 @@ export default function ScheduleCalendar({
         agenda: true,
       },
       eventTooltipFeature: {
-        template: ({
-          eventRecord,
-        }: {
-          eventRecord: { id: string | number };
-        }) => {
+        showOn: "click",
+        tooltip: {
+          cls: "dealmile-event-tip",
+          maxWidth: "min(420px, calc(100vw - 32px))",
+          maxHeight: "min(560px, calc(100dvh - 32px))",
+        },
+        titleRenderer: (record) => {
+          const item = items.find((i) => i.id === String(record.id));
+          return StringHelper.encodeHtml(item?.title ?? record.name);
+        },
+        renderer: async ({ eventRecord }) => {
           const item = items.find((i) => i.id === String(eventRecord.id));
           if (!item) return "";
           const encode = StringHelper.encodeHtml;
-          return `<strong>${encode(item.title)}</strong><p>${encode(item.projectName)}</p><p>${scheduleDate(item.startAt)} – ${scheduleDate(item.endAt)} · UTC</p><p>${encode(workLabel(item, Date.parse(now)))}</p><p>${item.tentative ? (item.dueAt ? "Estimated start · confirmed deadline" : "Tentative · subject to agreement and project readiness") : "Confirmed delivery window"}</p>`;
+          const windowLabel = item.tentative
+            ? item.dueAt
+              ? "Estimated start · confirmed deadline"
+              : "Tentative · subject to agreement and project readiness"
+            : "Confirmed delivery window";
+          const href = `/developer/projects/${encodeURIComponent(item.projectId)}#milestone-${encodeURIComponent(item.id)}`;
+          return `<div class="schedule-event-details">
+            <p class="schedule-event-project">${encode(item.projectName)}${item.additionalScope ? " · Additional scope" : ""}</p>
+            <p class="schedule-event-status">${encode(workLabel(item, Date.parse(now)))}</p>
+            <p class="schedule-event-description">${encode(item.description)}</p>
+            <dl><div><dt>Delivery window</dt><dd>${scheduleDate(item.startAt)} – ${scheduleDate(item.endAt)} · UTC</dd></div></dl>
+            <p class="schedule-event-note">${windowLabel}</p>
+            <a class="schedule-event-link" href="${encode(href)}">Open milestone</a>
+          </div>`;
         },
       },
       eventEditFeature: false,
@@ -64,15 +81,8 @@ export default function ScheduleCalendar({
       scheduleMenuFeature: false,
       dragFeature: false,
       eventCopyPasteFeature: false,
-      onEventClick: ({ eventRecord }) => {
-        const item = items.find((i) => i.id === String(eventRecord.id));
-        if (item)
-          router.push(
-            `/developer/projects/${item.projectId}#milestone-${item.id}`,
-          );
-      },
     }),
-    [items, now, router],
+    [items, now],
   );
   return (
     <div className="dealmile-calendar">

@@ -1,0 +1,42 @@
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 */
+/* DealMile landing pilot: existing brand tokens remain authoritative. */
+:root {
+  --landing-paper: var(--background);
+  --landing-panel: var(--surface);
+  --landing-panel-warm: var(--surface-warm);
+  --landing-ink: var(--foreground);
+  --landing-secondary: var(--muted);
+  --landing-rule: var(--border);
+  --landing-rule-strong: var(--border-strong);
+  --landing-action: var(--primary);
+  --landing-focus: var(--primary);
+  --landing-space-xs: 8px;
+  --landing-space-sm: 16px;
+  --landing-space-md: 24px;
+  --landing-space-lg: 32px;
+  --landing-space-xl: 48px;
+  --landing-space-2xl: 64px;
+  --landing-space-3xl: 80px;
+  --landing-display: clamp(2.5rem, 4.8vw, 4.5rem);
+  --landing-section-title: clamp(1.75rem, 3vw, 2.5rem);
+  --landing-card-title: 1.25rem;
+  --landing-radius: var(--radius);
+  --landing-card-shadow: 0 16px 40px -28px rgb(66 38 17 / 0.28);
+  --landing-glass-fill: color-mix(in srgb, var(--surface) 85%, transparent);
+  --landing-glass-rule: color-mix(
+    in srgb,
+    var(--border-strong) 16%,
+    transparent
+  );
+  --landing-glass-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 90%, transparent),
+    var(--landing-card-shadow);
+  --landing-transition: 150ms;
+  --landing-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.landing-page {
+  --landing-font-body: var(--dm-geist, "Segoe UI"), Arial, sans-serif;
+  --landing-font-data: var(--dm-geist-mono, "Courier New"), monospace;
+  --landing-font-editorial: var(--dm-editorial, Georgia), serif;
+}

@@ -1,0 +1,403 @@
+/* Shared product language: warm surfaces, clear grouping, restrained framing.
+   Scoped to product/auth/fallback views; workflow and semantic status logic stay intact. */
+:root {
+  --surface-warm: #f3e9d6;
+  --product-title: clamp(1.75rem, 3vw, 2.25rem);
+  --product-caption: 0.75rem;
+  --product-body: 0.875rem;
+}
+.product-skip-link {
+  position: fixed;
+  inset-block-start: 12px;
+  inset-inline-start: 16px;
+  z-index: 50;
+  padding: 12px 16px;
+  border-radius: var(--control-radius);
+  background: var(--foreground);
+  color: var(--surface);
+  transform: translateY(-160%);
+}
+.product-skip-link:focus {
+  transform: none;
+}
+.workspace-shell .workspace-sidebar {
+  background: var(--surface-warm);
+  border-inline-end: 1px solid var(--border-strong);
+}
+.workspace-shell .workspace-sidebar nav a {
+  font-size: var(--product-body);
+  gap: 12px;
+}
+.workspace-shell .workspace-sidebar nav a.selected {
+  background: var(--surface);
+  border-width: 1px;
+}
+.workspace-shell .sidebar-note {
+  background: transparent;
+  border: 0;
+  border-block-start: 1px solid var(--border);
+  border-radius: 0;
+  padding: 20px 0 0;
+}
+.workspace-shell .sidebar-note > svg {
+  display: none;
+}
+.workspace-shell .workspace-header {
+  background: var(--background);
+  font-size: var(--product-caption);
+}
+.workspace-shell .workspace-content {
+  max-width: 1200px;
+  padding: 40px;
+}
+.workspace-shell .dashboard-title {
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.workspace-shell .dashboard-title h1 {
+  font-size: var(--product-title);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.workspace-shell .dashboard-title p {
+  font-size: var(--product-body);
+  line-height: 1.6;
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+.workspace-shell .eyebrow {
+  font-size: var(--product-caption);
+  font-weight: 500;
+  letter-spacing: 0.035em;
+}
+.workspace-shell .dashboard-stats {
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 16px;
+}
+.workspace-shell .dashboard-stats article {
+  border-width: 1px;
+  background: var(--surface);
+  padding: 24px;
+  box-shadow: none;
+}
+.workspace-shell .dashboard-stats article.stat-primary {
+  background: var(--surface-warm);
+  border-color: var(--border-strong);
+}
+.workspace-shell .dashboard-stats article > div {
+  font-size: var(--product-caption);
+  font-weight: 500;
+}
+.workspace-shell .dashboard-stats strong {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 16px;
+}
+.workspace-shell .dashboard-stats article.stat-primary strong {
+  font-size: 2.5rem;
+}
+.workspace-shell .projects-panel {
+  border-width: 1px;
+}
+.workspace-shell .panel-heading {
+  gap: 16px;
+}
+.workspace-shell .panel-heading h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.workspace-shell .panel-heading > span {
+  font-size: var(--product-caption);
+}
+.workspace-shell .project-row {
+  padding: 20px 24px;
+  gap: 16px;
+}
+.workspace-shell .project-row strong {
+  font-size: var(--product-body);
+  font-weight: 600;
+}
+.workspace-shell .project-row time {
+  font-size: var(--product-caption);
+  font-variant-numeric: tabular-nums;
+}
+.workspace-shell .empty-state {
+  padding: 40px 24px;
+}
+.workspace-shell .empty-state p {
+  font-size: var(--product-body);
+  line-height: 1.6;
+  max-width: 60ch;
+}
+.workspace-shell .workspace-tip {
+  border: 0;
+  border-block-start: 1px solid var(--border);
+  border-radius: 0;
+  padding: 24px 0;
+}
+.workspace-shell .editor-section {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: none;
+}
+.workspace-shell .editor-section h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.workspace-shell .editor-heading > span {
+  background: var(--surface-warm);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.workspace-shell .editor-heading p {
+  font-size: var(--product-caption);
+  line-height: 1.6;
+}
+.workspace-shell .editor-summary {
+  background: var(--surface-warm);
+  border-color: var(--border-strong);
+}
+.workspace-shell .editor-summary h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.workspace-shell .milestone-editor {
+  border: 0;
+  border-block-start: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 24px 0 0;
+}
+.workspace-shell .project-stepper {
+  background: var(--surface-warm);
+  border-width: 1px;
+}
+.workspace-shell .project-summary-grid {
+  background: var(--surface-warm);
+  border-width: 1px;
+  padding: 24px;
+}
+.workspace-shell .project-summary-grid strong {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-shell .project-summary-grid > div:first-child strong {
+  font-size: 2rem;
+}
+.workspace-shell .project-summary-grid small {
+  font-size: var(--product-caption);
+}
+.workspace-shell .requirements-text {
+  color: var(--foreground);
+  font-size: var(--product-body);
+  line-height: 1.7;
+  max-width: 65ch;
+}
+.workspace-shell .scope-list li {
+  font-size: var(--product-body);
+  line-height: 1.6;
+}
+.workspace-shell .workspace-milestone {
+  gap: 16px;
+  padding-block: 24px;
+}
+.workspace-shell .workspace-milestone h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.workspace-shell .workspace-milestone p {
+  font-size: var(--product-body);
+  line-height: 1.6;
+}
+.workspace-shell .milestone-finance strong {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.workspace-shell .scope-intelligence {
+  border-block-start: 2px solid var(--accent);
+}
+.workspace-shell .scope-change-card {
+  border-block-start: 1px solid var(--border);
+}
+.workspace-shell .scope-workspace-comparison > div {
+  border-width: 1px;
+  box-shadow: none;
+}
+.workspace-shell .scope-workspace-comparison > div:last-child {
+  background: var(--accent-soft);
+}
+.workspace-shell .scope-workspace-comparison p,
+.workspace-shell .scope-workspace-comparison li {
+  font-size: var(--product-body);
+  line-height: 1.6;
+}
+.workspace-shell .scope-analysis {
+  background: var(--accent-soft);
+  border: 0;
+}
+.workspace-shell .activity-list p {
+  font-size: var(--product-body);
+  line-height: 1.6;
+}
+.workspace-shell .activity-list time {
+  font-size: var(--product-caption);
+  font-variant-numeric: tabular-nums;
+}
+.workspace-shell .account-panel {
+  border-width: 1px;
+  padding: 24px;
+  background: var(--surface);
+}
+.workspace-shell .account-panel h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.workspace-shell .account-panel dl > div {
+  font-size: var(--product-body);
+}
+.workspace-shell .payment-confirm-panel {
+  border-width: 1px;
+  background: var(--surface);
+}
+.workspace-shell .payment-receipt {
+  background: var(--surface-warm);
+}
+.workspace-shell .payment-receipt strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-shell .payment-identifiers {
+  font-size: var(--product-caption);
+}
+.workspace-shell .schedule-calendar {
+  border-color: var(--border-strong);
+  padding: 16px;
+}
+.workspace-shell .schedule-work {
+  padding-block: 20px;
+}
+.workspace-shell .schedule-work h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+:is(.workspace-shell, .auth-layout) .form-field :is(input, select, textarea) {
+  border-width: 1px;
+  font-size: var(--product-body);
+  min-height: 46px;
+}
+:is(.workspace-shell, .auth-layout) .form-field label {
+  font-size: var(--product-body);
+  font-weight: 500;
+}
+:is(.workspace-shell, .auth-layout) .field-hint {
+  font-size: var(--product-caption);
+  line-height: 1.6;
+}
+:is(.workspace-shell, .auth-layout) .button {
+  min-height: 44px;
+  font-size: var(--product-body);
+  gap: 8px;
+}
+:is(.workspace-shell, .auth-layout) .button-outline {
+  border-width: 1px;
+}
+.auth-layout .auth-aside {
+  background: var(--surface-warm);
+  border-inline-end-width: 1px;
+}
+.auth-layout .auth-aside h1 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.auth-layout .auth-aside p {
+  max-width: 60ch;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.auth-layout .auth-card h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.auth-layout .auth-description {
+  font-size: var(--product-body);
+  line-height: 1.6;
+}
+.auth-layout .auth-bottom {
+  font-size: var(--product-caption);
+}
+.fallback h1 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.fallback p {
+  max-width: 60ch;
+  line-height: 1.6;
+}
+@media (max-width: 1100px) {
+  .workspace-shell .workspace-content {
+    padding: 32px;
+  }
+}
+@media (max-width: 850px) {
+  .workspace-shell .editor-summary {
+    position: static;
+  }
+}
+@media (max-width: 600px) {
+  .workspace-shell .workspace-content {
+    padding: 24px 20px;
+  }
+  .workspace-shell .dashboard-title {
+    flex-direction: column;
+  }
+  .workspace-shell .dashboard-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-shell .dashboard-stats article {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .workspace-shell .dashboard-stats strong,
+  .workspace-shell .dashboard-stats article.stat-primary strong {
+    font-size: 2rem;
+    margin: 0;
+  }
+  .workspace-shell .project-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-shell .project-summary-grid > div {
+    gap: 16px;
+  }
+  .workspace-shell .editor-section,
+  .workspace-shell .account-panel {
+    padding: 20px;
+  }
+  :is(.workspace-shell, .auth-layout) .form-field :is(input, select, textarea) {
+    font-size: 1rem;
+  }
+  .workspace-shell .workspace-milestone > div:first-of-type {
+    min-width: 0;
+  }
+  .workspace-shell .workspace-milestone .milestone-finance {
+    width: calc(100% - 38px);
+  }
+  .workspace-shell .panel-heading {
+    flex-wrap: wrap;
+  }
+  .auth-layout .auth-aside {
+    border-inline-end: 0;
+  }
+}

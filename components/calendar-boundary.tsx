@@ -13,8 +13,8 @@ export class CalendarBoundary extends Component<
     return this.state.failed ? (
       <div role="alert">
         <p>
-          The calendar could not load. Your work and deadlines remain available
-          in the list below.
+          The calendar could not load. Retry, or open Projects to review your
+          milestones and deadlines.
         </p>
         <Button variant="outline" onClick={this.props.retry}>
           Retry calendar
