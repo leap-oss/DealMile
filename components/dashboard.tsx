@@ -1,15 +1,15 @@
 import {
   ArrowUpRight,
   CircleCheck,
-  FileText,
   FolderOpen,
   Handshake,
   ShieldCheck,
 } from "lucide-react";
-import Link from "next/link";
+import { PendingLink as Link } from "@/components/ui/pending-link";
+import { ProjectGuide } from "@/components/project-guide";
+import { ProjectList } from "@/components/project-list";
 import { db } from "@/lib/db";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { StatusBadge } from "@/components/ui/status-badge";
 import type { Role } from "@prisma/client";
 import {
   deliveryTiming,
@@ -33,15 +33,15 @@ export async function Dashboard({
             ] as import("@prisma/client").ProjectStatus[],
           },
         };
-  const projects = await db().project.findMany({
-    where,
-    select: { id: true, name: true, status: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-    take: 20,
-  });
-  await recordDeliveryReminders(projects.map((p) => p.id));
-  const reminders = await getDeliveryAlerts(user);
-  const [active, pending, completed] = await Promise.all([
+  // Independent reads share the same authorized filter. Reminder writes still
+  // complete before alerts are read, preserving their existing audit behavior.
+  const [projects, active, pending, completed] = await Promise.all([
+    db().project.findMany({
+      where,
+      select: { id: true, name: true, status: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 20,
+    }),
     db().project.count({
       where: { ...where, status: { in: ["AGREED", "ACTIVE"] } },
     }),
@@ -55,6 +55,8 @@ export async function Dashboard({
     }),
     db().project.count({ where: { ...where, status: "COMPLETED" } }),
   ]);
+  await recordDeliveryReminders(projects.map((p) => p.id));
+  const reminders = await getDeliveryAlerts(user);
   return (
     <WorkspaceShell user={user}>
       <span className="eyebrow">LET’S MAKE GOOD WORK HAPPEN</span>
@@ -78,6 +80,10 @@ export async function Dashboard({
           <span className="account-role">Developer workspace</span>
         )}
       </div>
+      <ProjectGuide
+        developer={user.role === "DEVELOPER"}
+        expanded={active === 0 && completed === 0}
+      />
       <div className="dashboard-stats">
         {[
           { label: "Active projects", value: active, icon: FolderOpen },
@@ -138,29 +144,16 @@ export async function Dashboard({
           <h2>
             Your projects <span>{projects.length}</span>
           </h2>
-          <span>Latest activity first</span>
+          <span>Open a project to review its next step</span>
         </div>
         {projects.length ? (
-          <div>
-            {projects.map((p) => (
-              <Link
-                href={
-                  user.role === "CLIENT"
-                    ? `/projects/${p.id}`
-                    : `/developer/projects/${p.id}`
-                }
-                className="project-row"
-                key={p.id}
-              >
-                <FileText size={20} />
-                <strong>{p.name}</strong>
-                <StatusBadge status={p.status} />
-                <time dateTime={p.updatedAt.toISOString()}>
-                  {p.updatedAt.toLocaleDateString("en-US")}
-                </time>
-              </Link>
-            ))}
-          </div>
+          <ProjectList
+            developer={user.role === "DEVELOPER"}
+            projects={projects.map((project) => ({
+              ...project,
+              updatedAt: project.updatedAt.toISOString(),
+            }))}
+          />
         ) : (
           <div className="empty-state">
             <span className="empty-icon">

@@ -136,3 +136,206 @@
     padding: 8px;
   }
 }
+
+/* Event bars open details even though schedule editing is disabled. */
+.dealmile-calendar .b-cal-event {
+  cursor: pointer;
+}
+
+/* Cream day tiles sit on a white calendar canvas. */
+.workspace-shell .schedule-calendar {
+  --schedule-background: #ffffff;
+  border: 0;
+  border-radius: 0;
+  background: var(--schedule-background);
+}
+.dealmile-calendar .b-calendar {
+  background: var(--schedule-background);
+  --b-calendar-background: var(--schedule-background);
+}
+.dealmile-calendar .b-calendar-toolbar {
+  padding: 8px 4px 24px;
+  background: var(--schedule-background);
+  border-bottom: 0;
+  gap: 8px;
+}
+.dealmile-calendar .b-calendar-toolbar .b-button {
+  min-height: 40px;
+  border-radius: var(--radius);
+}
+.dealmile-calendar .b-calendar-toolbar .b-button.b-pressed {
+  background: var(--foreground);
+  color: var(--surface);
+}
+.dealmile-calendar .b-month-view {
+  --b-month-view-background: var(--schedule-background);
+  --b-month-view-non-working-day-background: var(--surface-warm);
+  --b-calendar-view-header-cell-non-working-day-color: var(--foreground);
+  --b-month-view-border-inline-width: 0;
+  --b-month-view-cell-border-width: 0;
+  --b-month-view-border-color: var(--schedule-background);
+  --b-month-view-cell-header-background: transparent;
+  --b-month-view-cell-header-color: var(--foreground);
+  --b-month-view-cell-header-content-height: 32px;
+  --b-month-view-cell-header-dayname-height: 40px;
+  --b-month-view-cell-header-padding: 8px 8px 4px;
+  --b-month-view-today-day-num-background: var(--accent);
+  --b-month-view-today-day-num-color: var(--primary-foreground);
+  --b-month-view-event-padding: 8px;
+  background: var(--schedule-background);
+}
+.dealmile-calendar .b-month-view .b-calendar-day-header {
+  background: var(--schedule-background);
+  color: var(--foreground);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding-block: 8px;
+}
+.dealmile-calendar .b-month-view .b-calendar-cell {
+  border-radius: calc(var(--radius) * 2);
+  background: var(--surface-warm);
+}
+.workspace-shell
+  .dealmile-calendar
+  .b-month-view
+  .b-weeks-container
+  .b-calendar-panel-row
+  .b-calendar-cell {
+  border: 4px solid var(--schedule-background);
+}
+.dealmile-calendar
+  .b-month-view
+  .b-weeks-container
+  .b-calendar-panel-row
+  .b-calendar-cell.b-other-month {
+  background: var(--surface-subtle);
+}
+.dealmile-calendar .b-month-view .b-calendar-cell.b-today {
+  background: var(--accent-soft);
+}
+.dealmile-calendar .b-month-view .b-cal-cell-header {
+  justify-content: flex-end;
+}
+.dealmile-calendar .b-month-view .b-cal-cell-header .b-day-num {
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+  font-size: var(--text-md);
+  font-weight: 500;
+  min-width: 32px;
+  height: 32px;
+}
+.dealmile-calendar .b-month-view .b-other-month .b-day-num {
+  color: var(--muted);
+}
+.dealmile-calendar .b-month-view .b-cal-event {
+  border-radius: var(--control-radius);
+}
+@media (max-width: 600px) {
+  .dealmile-calendar .b-calendar-toolbar {
+    padding: 8px 0 16px;
+  }
+  .dealmile-calendar .b-month-view {
+    --b-month-view-cell-header-padding: 4px 2px;
+    --b-month-view-event-padding: 3px;
+  }
+  .dealmile-calendar .b-month-view .b-calendar-cell {
+    border-radius: var(--radius);
+  }
+  .workspace-shell
+    .dealmile-calendar
+    .b-month-view
+    .b-weeks-container
+    .b-calendar-panel-row
+    .b-calendar-cell {
+    border-width: 2px;
+  }
+  .dealmile-calendar .b-month-view .b-cal-cell-header .b-day-num {
+    font-size: var(--text-sm);
+    min-width: 28px;
+    height: 28px;
+  }
+  .dealmile-calendar .b-month-view .b-calendar-day-header {
+    font-size: var(--text-xs);
+  }
+}
+
+.schedule-range-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding-block: 0 16px;
+}
+.schedule-range-controls p {
+  flex: 1 1 260px;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+.dealmile-calendar .b-month-view .schedule-date-marker .b-cal-event,
+.dealmile-calendar .b-month-view .b-cal-event.schedule-date-marker {
+  border-radius: var(--control-radius);
+}
+.dealmile-calendar .b-month-view .schedule-expanded-range .b-cal-event,
+.dealmile-calendar .b-month-view .b-cal-event.schedule-expanded-range {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* A colored date tile marks work on that day; labels retain native status text. */
+.workspace-shell .schedule-calendar {
+  --schedule-day-active: #a3cee2;
+  --schedule-day-tentative: #ffda85;
+  --schedule-day-completed: #a5d6a9;
+  --schedule-day-overdue: #efb8b4;
+}
+.workspace-shell
+  .dealmile-calendar
+  .b-month-view
+  .b-weeks-container
+  .b-calendar-panel-row
+  .b-calendar-cell[data-schedule-tone] {
+  background: var(--schedule-day-fill, var(--schedule-day-active));
+}
+.dealmile-calendar
+  .b-month-view
+  .b-calendar-cell[data-schedule-tone="tentative"] {
+  --schedule-day-fill: var(--schedule-day-tentative);
+}
+.dealmile-calendar
+  .b-month-view
+  .b-calendar-cell[data-schedule-tone="completed"] {
+  --schedule-day-fill: var(--schedule-day-completed);
+}
+.dealmile-calendar
+  .b-month-view
+  .b-calendar-cell[data-schedule-tone="overdue"] {
+  --schedule-day-fill: var(--schedule-day-overdue);
+}
+.workspace-shell
+  .dealmile-calendar
+  .b-month-view
+  .b-weeks-container
+  .b-calendar-panel-row
+  .b-calendar-cell[data-schedule-tone="paused"] {
+  --schedule-day-fill: var(--surface-subtle);
+}
+.dealmile-calendar .b-month-view .schedule-date-marker .b-cal-event {
+  background: var(--surface-warm);
+  color: var(--foreground);
+}
+
+.dealmile-calendar .b-month-view .schedule-date-marker .b-cal-event-desc {
+  color: var(--foreground);
+}
+
+/* Empty and occupied weeks share the same flex basis and minimum height. */
+.workspace-shell
+  .dealmile-calendar
+  .b-month-view
+  .b-weeks-container
+  .b-calendar-panel-row {
+  flex: 1 1 0;
+  min-height: 0;
+  transition: none;
+}

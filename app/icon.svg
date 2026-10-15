@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>DealMile</title>
+  <rect width="64" height="64" rx="14" fill="#f7f4ea"/>
+  <g fill="#e85d2a" transform="translate(8 9) skewX(-16)">
+    <rect x="11" y="13" width="8" height="20" rx="1"/>
+    <rect x="23" y="7" width="8" height="32" rx="1"/>
+    <rect x="35" y="1" width="8" height="44" rx="1"/>
+  </g>
+</svg>

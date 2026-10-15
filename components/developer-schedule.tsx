@@ -5,12 +5,13 @@ import { CalendarDays, LoaderCircle } from "lucide-react";
 import type { ScheduleItem } from "@/lib/schedule/project";
 import "./schedule.css";
 import { CalendarBoundary } from "./calendar-boundary";
-const Calendar = dynamic(() => import("./schedule-calendar"), {
+import { loadScheduleCalendar } from "./calendar-loader";
+const Calendar = dynamic(loadScheduleCalendar, {
   ssr: false,
   loading: () => (
     <p className="timeline-loading" role="status">
       <LoaderCircle className="spin" size={18} />
-      Loading your calendar…
+      Loading calendar controls…
     </p>
   ),
 });
@@ -44,7 +45,7 @@ export function DeveloperSchedule({
             key={attempt}
             retry={() => setAttempt((value) => value + 1)}
           >
-            <Calendar key={JSON.stringify(items)} items={items} now={now} />
+            <Calendar key={now} items={items} now={now} />
           </CalendarBoundary>
         </section>
       ) : (

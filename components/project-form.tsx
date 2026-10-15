@@ -1,5 +1,11 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { ArrowRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import {
   generateProjectPlan,
@@ -16,6 +22,34 @@ type Milestone = {
   amount: string;
   estimatedDays: string;
 };
+// Keep the server-rendered form disabled until its controlled fields hydrate.
+const subscribeHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+function AiProgress() {
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    let next = 0;
+    const timer = setInterval(() => {
+      next += 1;
+      setStage(next);
+      if (next === 3) clearInterval(timer);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <p className="ai-progress" role="status">
+      {
+        [
+          "Waiting for an AI draft…",
+          "Still waiting for the AI draft…",
+          "This is taking a little longer. Keep this page open…",
+          "Still waiting for the AI service. The draft will appear when it is ready…",
+        ][stage]
+      }
+    </p>
+  );
+}
 export function ProjectForm({
   initial,
   projectId,
@@ -33,20 +67,11 @@ export function ProjectForm({
     ProjectFormState,
     FormData
   >(generateProjectPlan, {});
-  const [aiStage, setAiStage] = useState(0);
-  useEffect(() => {
-    if (!aiPending) {
-      setAiStage(0);
-      return;
-    }
-    const timer = setInterval(
-      () => setAiStage((i) => Math.min(i + 1, 3)),
-      4500,
-    );
-    return () => clearInterval(timer);
-  }, [aiPending]);
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
+  const ready = useSyncExternalStore(
+    subscribeHydration,
+    clientReady,
+    serverReady,
+  );
   const [details, setDetails] = useState({
     name: initial?.name ?? "",
     type: initial?.type ?? "Website",
@@ -72,16 +97,33 @@ export function ProjectForm({
       milestones.map((m, i) => (i === index ? { ...m, [key]: value } : m)),
     );
   }
-  const total = milestones.reduce((n, m) => n + (Number(m.amount) || 0), 0);
+  const serializedMilestones = useMemo(
+    () => JSON.stringify(milestones),
+    [milestones],
+  );
+  const total = useMemo(
+    () => milestones.reduce((n, m) => n + (Number(m.amount) || 0), 0),
+    [milestones],
+  );
   return (
-    <form action={projectId ? action : generateAction} className="project-form">
+    <form
+      action={projectId ? action : generateAction}
+      className="project-form"
+      aria-busy={pending || aiPending}
+    >
+      {!projectId && (
+        <div className="project-form-guide">
+          <strong>First, create a draft plan.</strong>
+          <p>
+            Fill in the project details and choose Generate project plan. You’ll
+            review and edit the AI draft before sending it to a developer. No
+            payment is taken at this step.
+          </p>
+        </div>
+      )}
       <fieldset disabled={!ready || pending || aiPending}>
         <input type="hidden" name="projectId" value={projectId ?? ""} />
-        <input
-          type="hidden"
-          name="milestones"
-          value={JSON.stringify(milestones)}
-        />
+        <input type="hidden" name="milestones" value={serializedMilestones} />
         <div className="editor-grid">
           <div>
             <section className="editor-section">
@@ -301,18 +343,7 @@ export function ProjectForm({
                     Let AI suggest scope and milestones. Review every detail
                     before sending.
                   </p>
-                  {aiPending && (
-                    <p className="ai-progress" role="status">
-                      {
-                        [
-                          "Analyzing requirements…",
-                          "Defining scope…",
-                          "Creating milestones…",
-                          "Reviewing budget allocation…",
-                        ][aiStage]
-                      }
-                    </p>
-                  )}
+                  {aiPending && <AiProgress />}
                   {aiState.error && (
                     <div className="form-error" role="alert">
                       {aiState.error}
@@ -426,6 +457,12 @@ export function ProjectForm({
                   </>
                 )}
               </Button>
+              {aiPending && !projectId && (
+                <p className="field-hint" role="status">
+                  Waiting for the AI draft. This can take longer than saving a
+                  project. Keep this page open; no payment is taken.
+                </p>
+              )}
             </section>
           </aside>
         </div>

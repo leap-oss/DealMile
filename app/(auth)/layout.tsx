@@ -1,55 +1,90 @@
-import { Brand } from "@/components/brand";
-import { Check, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Geist } from "next/font/google";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { Brand } from "@/components/brand";
+import "./auth.css";
+
+const authFont = Geist({
+  subsets: ["latin"],
+  variable: "--auth-font",
+  display: "swap",
+});
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <main className="auth-layout">
-      <aside className="auth-aside">
+    <div className={`auth-layout auth-shell ${authFont.variable}`}>
+      <a className="product-skip-link" href="#auth-content">
+        Skip to form
+      </a>
+      <aside className="auth-aside" aria-label="About DealMile">
         <Brand />
-        <div>
-          <span className="eyebrow">A BETTER START TO EVERY PROJECT</span>
-          <h1>
-            Good work starts
+        <div className="auth-story">
+          <p className="auth-overline">A shared plan for the work ahead</p>
+          <h2>
+            Clear scope.
             <br />
-            with a good
-            <br />
-            <span>agreement.</span>
-          </h1>
+            <span>Shared terms.</span>
+          </h2>
           <p>
-            A shared understanding of what you’re building,
-            <br />
-            what it costs, and what comes next.
+            From the first proposal to the last delivery, know what is agreed
+            and who acts next.
           </p>
-          <ul>
-            <li>
-              <Check size={17} />
-              Clear scope and deliverables
-            </li>
-            <li>
-              <Check size={17} />
-              Milestones you agree on together
-            </li>
-            <li>
-              <Check size={17} />
-              Room for change. Without surprises.
-            </li>
-          </ul>
+          <ol className="auth-workflow">
+            {[
+              [
+                "01",
+                "Agree on the work",
+                "Review deliverables, prices, and time estimates together.",
+              ],
+              [
+                "02",
+                "Fund one milestone",
+                "Sandbox funding is verified before that milestone starts.",
+              ],
+              [
+                "03",
+                "Review the delivery",
+                "Approve submitted work or request revisions.",
+              ],
+            ].map(([number, title, description]) => (
+              <li key={number}>
+                <span className="auth-step-number" aria-hidden="true">
+                  {number}
+                </span>
+                <div>
+                  <strong>{title}</strong>
+                  <p>{description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
-        <span className="auth-aside-footer">
-          <ShieldCheck size={16} /> AI recommends. Humans approve.
-        </span>
+        <p className="auth-aside-footer">
+          <ShieldCheck size={17} aria-hidden="true" /> AI proposes. Both
+          partners decide.
+        </p>
       </aside>
-      <section className="auth-content">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={16} /> Back to home
-        </Link>
-        <div className="auth-card">{children}</div>
-        <p className="auth-bottom">Every milestone starts with a clear deal.</p>
-      </section>
-    </main>
+      <div className="auth-content">
+        <header className="auth-topbar">
+          <div className="auth-mobile-brand">
+            <Brand />
+          </div>
+          <Link href="/" className="back-link">
+            <ArrowLeft size={16} aria-hidden="true" /> Back to home
+          </Link>
+          <span className="auth-environment">PayPal Sandbox</span>
+        </header>
+        <main id="auth-content" tabIndex={-1} className="auth-card">
+          {children}
+        </main>
+        <p className="auth-bottom">
+          Sandbox payments only. No real money moves.
+        </p>
+      </div>
+    </div>
   );
 }

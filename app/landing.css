@@ -869,6 +869,33 @@
 .hallmark-landing .preview-footer {
   background: var(--landing-panel);
 }
+.hallmark-landing .preview-playback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.hallmark-landing .preview-playback:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.hallmark-landing .preview-playback:active {
+  background: var(--surface-subtle);
+}
+.hallmark-landing .preview-playback:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .hallmark-landing :is(.section-heading h2, .scope-copy h2, .cta-section h2) {
   font-size: var(--landing-section-title);
   font-weight: 600;

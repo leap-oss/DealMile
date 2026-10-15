@@ -22,7 +22,7 @@ export function PayButton({ milestoneId }: { milestoneId: string }) {
         ) : (
           <LockKeyhole size={13} />
         )}{" "}
-        {pending ? "Creating order…" : "Pay with PayPal"}
+        {pending ? "Creating order…" : "Pay with PayPal Sandbox"}
       </Button>
       {state.error && (
         <p className="field-error" role="alert">

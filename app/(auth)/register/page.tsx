@@ -12,9 +12,12 @@ export default async function RegisterPage({
   const { role } = await searchParams;
   return (
     <>
-      <span className="eyebrow">START ON THE SAME PAGE</span>
-      <h2>Make room for great work.</h2>
-      <p className="auth-description">Create your DealMile workspace.</p>
+      <span className="eyebrow">START WITH A CLEAR AGREEMENT</span>
+      <h1>Create your workspace.</h1>
+      <p className="auth-description">
+        Choose your role, then create an account to start planning or reviewing
+        project work.
+      </p>
       <AuthForm
         mode="register"
         defaultRole={role === "DEVELOPER" ? "DEVELOPER" : "CLIENT"}

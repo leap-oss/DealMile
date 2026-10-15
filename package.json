@@ -19,12 +19,16 @@
     "lint": "eslint .",
     "check:paypal": "node --env-file=.env --conditions=react-server --import tsx scripts/check-paypal-checkout.ts",
     "verify:paypal": "node --env-file=.env --conditions=react-server --import tsx scripts/verify-paypal-capture.ts",
-    "check:deadlines": "node --env-file=.env --conditions=react-server --import tsx scripts/check-delivery-deadlines.ts"
+    "check:deadlines": "node --env-file=.env --conditions=react-server --import tsx scripts/check-delivery-deadlines.ts",
+    "check:deploy": "node --env-file-if-exists=.env --import tsx scripts/check-deploy.ts",
+    "build:deploy": "npm run check:deploy && npm run db:generate && npm run build"
   },
   "dependencies": {
     "@bryntum/calendar": "npm:@bryntum/calendar-trial@7.3.7",
     "@bryntum/calendar-react": "7.3.7",
     "@prisma/client": "^6.19.3",
+    "ag-grid-community": "36.2.0",
+    "ag-grid-react": "36.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.52.0",
@@ -59,5 +63,8 @@
     "@prisma/config": {
       "deepmerge-ts": "^8.0.0"
     }
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

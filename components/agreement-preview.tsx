@@ -7,7 +7,7 @@ export function AgreementPreview() {
         <span>Not funded</span>
       </div>
       <h2>E-commerce website</h2>
-      <p>Four milestones. One shared scope.</p>
+      <p>Illustrative scope and milestone costs.</p>
       <dl>
         {[
           ["Discovery & design", "$150"],
@@ -28,7 +28,7 @@ export function AgreementPreview() {
         </div>
       </dl>
       <div className="agreement-preview-note">
-        AI suggestion · both partners review before funding
+        AI draft · review the terms before Sandbox funding
       </div>
     </aside>
   );

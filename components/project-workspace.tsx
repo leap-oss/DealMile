@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { PendingLink as Link } from "@/components/ui/pending-link";
+import { milestoneNextStep, projectNextStep } from "@/lib/projects/next-step";
 import { notFound } from "next/navigation";
 import {
   Check,
@@ -81,6 +82,9 @@ export async function ProjectWorkspace({
             },
           ]
         : [];
+  const nextMilestone = project.milestones.find(
+    (milestone) => !["COMPLETED", "CANCELLED"].includes(milestone.status),
+  );
   return (
     <WorkspaceShell user={user}>
       <Link
@@ -123,7 +127,35 @@ export async function ProjectWorkspace({
           </div>
         </div>
       )}
-      <div className="project-stepper">
+      {!project.paymentHold && (
+        <section
+          className="project-next-step"
+          aria-labelledby="next-step-heading"
+        >
+          <h2 id="next-step-heading">What happens next</h2>
+          <p>
+            {agreed && project.status !== "COMPLETED" && nextMilestone ? (
+              <>
+                <strong>{nextMilestone.title}.</strong>{" "}
+                {milestoneNextStep(nextMilestone.status, developer)}
+              </>
+            ) : (
+              projectNextStep(project.status, developer)
+            )}
+          </p>
+          {agreed && project.status !== "COMPLETED" && (
+            <p className="field-hint">
+              Each milestone below shows its current status and available
+              actions. New requirements go in Scope intelligence.
+            </p>
+          )}
+        </section>
+      )}
+      <div
+        className="project-stepper"
+        role="list"
+        aria-label="Project progress; steps are informational"
+      >
         {[
           "Draft",
           "Developer review",
@@ -144,10 +176,24 @@ export async function ProjectWorkspace({
           return (
             <div
               key={s}
+              role="listitem"
+              aria-current={i === current ? "step" : undefined}
               className={i < current ? "done" : i === current ? "current" : ""}
             >
-              <span>{i < current ? <Check size={12} /> : i + 1}</span>
-              <strong>{s}</strong>
+              <span className="project-step-number" aria-hidden="true">
+                {i + 1}
+              </span>
+              <strong>
+                {s}
+                {i < current && <Check size={14} aria-hidden="true" />}
+              </strong>
+              <small className="sr-only">
+                {i < current
+                  ? "Completed stage"
+                  : i === current
+                    ? "Current stage"
+                    : "Upcoming stage"}
+              </small>
             </div>
           );
         })}

@@ -7,9 +7,11 @@ export default async function LoginPage() {
   if (user) redirect(user.role === "CLIENT" ? "/dashboard" : "/developer");
   return (
     <>
-      <span className="eyebrow">YOUR NEXT MILESTONE AWAITS</span>
-      <h2>Welcome back.</h2>
-      <p className="auth-description">Let’s pick up where you left off.</p>
+      <span className="eyebrow">YOUR PROJECT WORKSPACE</span>
+      <h1>Welcome back.</h1>
+      <p className="auth-description">
+        Log in to review your projects, agreements, and next steps.
+      </p>
       <AuthForm mode="login" />
     </>
   );

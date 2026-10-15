@@ -1,7 +1,9 @@
+import { RouteLoading } from "@/components/ui/route-loading";
 export default function Loading() {
   return (
-    <main className="workspace-content" aria-busy="true">
-      <p role="status">Loading your schedule…</p>
-    </main>
+    <RouteLoading
+      title="Opening schedule…"
+      description="Loading milestone dates across your projects."
+    />
   );
 }

@@ -1,20 +1,79 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowUpRight,
   Check,
   CheckCheck,
   LockKeyhole,
-  Plus,
+  Pause,
+  Play,
   ScanLine,
   Sparkles,
 } from "lucide-react";
-const steps = ["Plan", "Agree", "Pay", "Adapt"];
+const steps = ["Plan", "Agree", "Fund", "Review"];
+const intervalMs = 6000;
+function subscribeMotion(callback: () => void) {
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function subscribeVisibility(callback: () => void) {
+  document.addEventListener("visibilitychange", callback);
+  return () => document.removeEventListener("visibilitychange", callback);
+}
 export function WorkflowPreview() {
   const [step, setStep] = useState(0);
+  const [playback, setPlayback] = useState<boolean | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [inView, setInView] = useState(false);
+  const preview = useRef<HTMLDivElement>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const reducedMotion = useSyncExternalStore(
+    subscribeMotion,
+    prefersReducedMotion,
+    () => true,
+  );
+  const visible = useSyncExternalStore(
+    subscribeVisibility,
+    () => document.visibilityState === "visible",
+    () => false,
+  );
+  const playing = playback ?? !reducedMotion;
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+    });
+    if (preview.current) observer.observe(preview.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!playing || hovered || focused || !visible || !inView) return;
+    const timer = window.setInterval(
+      () => setStep((current) => (current + 1) % steps.length),
+      intervalMs,
+    );
+    return () => window.clearInterval(timer);
+  }, [playing, hovered, focused, visible, inView]);
+  function selectStep(next: number) {
+    setPlayback(false);
+    setStep(next);
+  }
   return (
-    <div className="preview-wrap">
+    <div
+      ref={preview}
+      className="preview-wrap"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setFocused(false);
+      }}
+    >
       <div className="preview-label">
         <span>Interactive workflow</span>
         <span>Example project · Sandbox</span>
@@ -32,7 +91,14 @@ export function WorkflowPreview() {
             </div>
             <span className="status">
               <span />
-              {step === 0 ? "Draft proposal" : "Agreement ready"}
+              {
+                [
+                  "Draft proposal",
+                  "Terms under review",
+                  "Ready for funding",
+                  "Awaiting client review",
+                ][step]
+              }
             </span>
           </div>
           <div className="preview-stats">
@@ -80,7 +146,7 @@ export function WorkflowPreview() {
                             : null;
                   if (next !== null) {
                     event.preventDefault();
-                    setStep(next);
+                    selectStep(next);
                     tabs.current[next]?.focus();
                   }
                 }}
@@ -89,7 +155,7 @@ export function WorkflowPreview() {
                 aria-controls="preview-panel"
                 aria-selected={step === i}
                 className={step === i ? "active" : ""}
-                onClick={() => setStep(i)}
+                onClick={() => selectStep(i)}
               >
                 <span>0{i + 1}</span>
                 {s}
@@ -106,7 +172,7 @@ export function WorkflowPreview() {
             {step === 0 ? (
               <>
                 <div className="preview-section-title">
-                  <strong>Your project, broken down.</strong>
+                  <strong>A draft you can review and edit.</strong>
                   <span>
                     <Sparkles size={12} /> AI suggested
                   </span>
@@ -130,10 +196,10 @@ export function WorkflowPreview() {
             ) : step === 1 ? (
               <div className="preview-feature">
                 <CheckCheck size={29} />
-                <h4>One agreement. Both on board.</h4>
+                <h4>Agree on the terms first.</h4>
                 <p>
-                  Review scope, adjust milestones, and approve the final
-                  proposal together.
+                  Review the deliverables, milestone prices, and time estimates.
+                  Both partners agree before funding begins.
                 </p>
                 <div className="preview-check">
                   <Check size={15} /> Scope, timeline, and pricing reviewed
@@ -145,10 +211,10 @@ export function WorkflowPreview() {
             ) : step === 2 ? (
               <div className="preview-feature">
                 <LockKeyhole size={29} />
-                <h4>A payment for every milestone.</h4>
+                <h4>Fund a milestone before work starts.</h4>
                 <p>
-                  Pay through PayPal after an agreement. Work starts once the
-                  server verifies payment.
+                  After agreement, fund the next milestone in PayPal Sandbox.
+                  Work starts after server verification, not a browser redirect.
                 </p>
                 <div className="payment-example">
                   <span>Discovery & design</span>
@@ -161,29 +227,48 @@ export function WorkflowPreview() {
             ) : (
               <div className="preview-feature">
                 <ScanLine size={29} />
-                <h4>New request? Make it a clear deal.</h4>
+                <h4>Review what was delivered.</h4>
                 <p>
-                  Compare additional work with the original agreement before
-                  making a decision.
+                  The developer submits the milestone for client review. Approve
+                  the work or request revisions before the next milestone.
                 </p>
                 <div className="scope-example">
-                  <span>Email authentication</span>
+                  <span>Milestone submitted</span>
                   <ArrowUpRight size={15} />
                   <strong>
-                    Google login <Plus size={12} />
+                    Client review <Check size={12} />
                   </strong>
                 </div>
                 <span className="scope-note">
-                  Potential new requirement · Human review required
+                  Example status · Client approval required
                 </span>
               </div>
             )}
           </div>
           <div className="preview-footer">
             <span>
-              <LockKeyhole size={12} /> You make the decisions. Always.
+              <LockKeyhole size={12} /> AI suggests. Both partners decide.
             </span>
-            <span>Example project</span>
+            <button
+              className="preview-playback"
+              type="button"
+              aria-label={
+                playing ? "Pause workflow preview" : "Play workflow preview"
+              }
+              title="Advance to the next step every 6 seconds"
+              onClick={() => {
+                setPlayback(!playing);
+                // Explicit playback can resume while this control retains focus.
+                setFocused(false);
+              }}
+            >
+              {playing ? (
+                <Pause size={12} aria-hidden="true" />
+              ) : (
+                <Play size={12} aria-hidden="true" />
+              )}
+              {playing ? "Pause" : "Play"}
+            </button>
           </div>
         </div>
       </div>

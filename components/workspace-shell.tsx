@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PendingLink as Link } from "@/components/ui/pending-link";
 import {
   ArrowUpRight,
   LayoutDashboard,
@@ -42,6 +42,8 @@ export function WorkspaceShell({
           {user.role === "DEVELOPER" && (
             <Link
               href="/developer/schedule"
+              preloadCalendar
+              pendingLabel="Opening schedule…"
               className={active === "schedule" ? "selected" : ""}
               aria-current={active === "schedule" ? "page" : undefined}
             >

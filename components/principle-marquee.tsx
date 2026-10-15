@@ -30,17 +30,17 @@ export function PrincipleMarquee() {
               )}
               <span>
                 <Sparkles size={18} aria-hidden="true" />
-                <strong>AI understands the scope</strong>
+                <strong>AI proposes the scope</strong>
               </span>
               <span>
                 <Handshake size={19} aria-hidden="true" />
-                <strong>Humans make the deal</strong>
+                <strong>Both partners agree</strong>
               </span>
               <span>
                 <span className="paypal-icon" aria-hidden="true">
                   P
                 </span>
-                <strong>PayPal powers the payment</strong>
+                <strong>PayPal Sandbox funds milestones</strong>
               </span>
             </div>
           ))}

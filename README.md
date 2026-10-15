@@ -2,7 +2,7 @@
 
 Every milestone starts with a clear deal.
 
-DealMile connects project requirements, human-approved agreements, milestones, scope changes, and PayPal payments. Development follows `plan.md` in order. See [IMPLEMENTATION.md](./IMPLEMENTATION.md) for verified scope and remaining work.
+DealMile connects project requirements, human-approved agreements, milestones, scope changes, and PayPal payments. See [DEPLOYMENT.md](./DEPLOYMENT.md) for deployment preparation, environment configuration, and release checks.
 
 ## Available now
 
@@ -16,7 +16,7 @@ Real PayPal Sandbox checkout/capture is verified without a webhook. Milestone de
 
 ## Local setup
 
-Requires Node.js 22+, npm, Docker Compose (or an existing PostgreSQL server).
+Requires Node.js 22.x, npm, Docker Compose (or an existing PostgreSQL server).
 
 ```bash
 cp .env.example .env
@@ -31,7 +31,7 @@ npm run dev
 
 Open http://localhost:3000. Register a developer, then a client in another browser session. New projects go to a registered developer with the fewest unfinished assigned projects, with random selection only among ties. Drafts/planning/review reserve capacity; completed, rejected and cancelled projects do not count. Selection and creation share a serializable transaction with retries, including AI-assisted drafts. Existing draft retries retain their assigned partner. The client starts with an AI-generated draft, then reviews and revises scope, milestones, and budget. There are no authentication bypasses or seeded passwords.
 
-The current workspace has a dedicated `dealmile-postgres` container and an ignored local `.env`. Skip Compose startup if using that running container to avoid a port conflict. Compose uses a named volume for persistence.
+Compose uses a named volume for persistence. If PostgreSQL is already running, configure its connection URL instead of starting a second container on the same port.
 
 `APP_URL` is the configured application origin, including protocol and port. It remains `http://localhost:3000` during local development. Development also trusts the exact Codespaces forwarding URL derived from `CODESPACE_NAME` and `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`; Next.js Server Actions and authentication use this same explicit allowlist, so forwarded localhost requests work without broad wildcard trust. Production does not add the Codespaces development origin. Production requires HTTPS because cookies are secure in production. Environment variables are checked on the server; never publish `.env`.
 
