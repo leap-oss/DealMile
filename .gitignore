@@ -50,6 +50,8 @@ next-env.d.ts
 /.cache/
 /.turbo/
 /CLAUDE.md
+/skills/
+/skills-lock.json
 
 # Local conversations and unused design references
 /saves chat

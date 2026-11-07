@@ -39,18 +39,18 @@ export function WorkspaceShell({
             <LayoutDashboard size={18} />
             Overview
           </Link>
-          {user.role === "DEVELOPER" && (
-            <Link
-              href="/developer/schedule"
-              preloadCalendar
-              pendingLabel="Opening schedule…"
-              className={active === "schedule" ? "selected" : ""}
-              aria-current={active === "schedule" ? "page" : undefined}
-            >
-              <CalendarDays size={18} />
-              Schedule
-            </Link>
-          )}
+          <Link
+            href={
+              user.role === "DEVELOPER" ? "/developer/schedule" : "/schedule"
+            }
+            preloadCalendar
+            pendingLabel="Opening schedule…"
+            className={active === "schedule" ? "selected" : ""}
+            aria-current={active === "schedule" ? "page" : undefined}
+          >
+            <CalendarDays size={18} />
+            Schedule
+          </Link>
           <Link
             href="/settings"
             aria-current={active === "settings" ? "page" : undefined}

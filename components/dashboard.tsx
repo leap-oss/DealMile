@@ -1,5 +1,6 @@
 import {
   ArrowUpRight,
+  CalendarDays,
   CircleCheck,
   FolderOpen,
   Handshake,
@@ -38,7 +39,32 @@ export async function Dashboard({
   const [projects, active, pending, completed] = await Promise.all([
     db().project.findMany({
       where,
-      select: { id: true, name: true, status: true, updatedAt: true },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        updatedAt: true,
+        budget: true,
+        currency: true,
+        deadline: true,
+        paymentHold: true,
+        client: { select: { name: true } },
+        developer: { select: { name: true } },
+        milestones: {
+          where: { status: { not: "CANCELLED" } },
+          select: {
+            status: true,
+            payments: {
+              where: {
+                status: "CAPTURED",
+                verifiedAt: { not: null },
+                paypalCaptureId: { not: null },
+              },
+              select: { amount: true },
+            },
+          },
+        },
+      },
       orderBy: { updatedAt: "desc" },
       take: 20,
     }),
@@ -144,15 +170,47 @@ export async function Dashboard({
           <h2>
             Your projects <span>{projects.length}</span>
           </h2>
-          <span>Open a project to review its next step</span>
+          <Link
+            href={
+              user.role === "DEVELOPER" ? "/developer/schedule" : "/schedule"
+            }
+            preloadCalendar
+            className="text-link"
+          >
+            <CalendarDays size={15} /> Open milestone schedule
+          </Link>
         </div>
         {projects.length ? (
           <ProjectList
             developer={user.role === "DEVELOPER"}
-            projects={projects.map((project) => ({
-              ...project,
-              updatedAt: project.updatedAt.toISOString(),
-            }))}
+            projects={projects.map((project) => {
+              const fundedAmount = project.milestones.reduce(
+                (sum, m) =>
+                  sum +
+                  m.payments.reduce((pSum, p) => pSum + Number(p.amount), 0),
+                0,
+              );
+              const completedMilestones = project.milestones.filter(
+                (m) => m.status === "COMPLETED",
+              ).length;
+              return {
+                id: project.id,
+                name: project.name,
+                status: project.status,
+                updatedAt: project.updatedAt.toISOString(),
+                counterparty:
+                  user.role === "DEVELOPER"
+                    ? project.client.name
+                    : (project.developer?.name ?? "Assigned developer"),
+                budgetAmount: Number(project.budget),
+                fundedAmount,
+                currency: project.currency,
+                completedMilestones,
+                totalMilestones: project.milestones.length,
+                deadline: project.deadline.toISOString(),
+                paymentHold: project.paymentHold,
+              };
+            })}
           />
         ) : (
           <div className="empty-state">

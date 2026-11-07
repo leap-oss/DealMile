@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BryntumCalendar,
   BryntumCalendarProjectModel,
@@ -19,20 +19,36 @@ import {
   workLabel,
   type ScheduleItem,
 } from "@/lib/schedule/project";
+
+const toLocalCalendarDate = (iso: string) => `${iso.slice(0, 10)}T00:00:00`;
+
+function localizeEvent<T extends { startDate: string; endDate: string }>(
+  event: T,
+): T {
+  return {
+    ...event,
+    startDate: toLocalCalendarDate(event.startDate),
+    endDate: toLocalCalendarDate(event.endDate),
+  };
+}
+
 export default function ScheduleCalendar({
   items,
   now,
+  clientView = false,
 }: {
   items: ScheduleItem[];
   now: string;
+  clientView?: boolean;
 }) {
   const project = useRef<BryntumCalendarProjectModel>(null);
   const calendar = useRef<BryntumCalendar>(null);
-  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [visibleMode, setVisibleMode] = useState("month");
   const selectedId = useRef<string | null>(null);
   const fullEvents = useMemo(
-    () => calendarEvents(items, Date.parse(now)),
+    () => calendarEvents(items, Date.parse(now)).map(localizeEvent),
     [items, now],
   );
   const itemsById = useMemo(
@@ -44,8 +60,14 @@ export default function ScheduleCalendar({
     [fullEvents],
   );
   const markersById = useMemo(
-    () => new Map(fullEvents.map((event) => [event.id, deadlineMarker(event)])),
-    [fullEvents],
+    () =>
+      new Map(
+        calendarEvents(items, Date.parse(now)).map((event) => [
+          event.id,
+          localizeEvent(deadlineMarker(event)),
+        ]),
+      ),
+    [items, now],
   );
   const presentationMode = useRef("month");
   const projectConfig = useMemo<BryntumCalendarProjectModelProps>(
@@ -95,7 +117,7 @@ export default function ScheduleCalendar({
         cls: marker.cls,
       });
     selectedId.current = null;
-    setSelectedTitle(null);
+    setExpandedId(null);
   }, [markersById]);
   const revealRange = useCallback(
     async (id: string) => {
@@ -108,7 +130,8 @@ export default function ScheduleCalendar({
       try {
         clearRange();
         selectedId.current = id;
-        setSelectedTitle(itemsById.get(id)?.title ?? event.name);
+        setExpandedId(id);
+        setActiveId(id);
         store.getById(id)?.set({
           ...deliveryRange(event),
           cls: `${event.cls} schedule-expanded-range`,
@@ -121,14 +144,37 @@ export default function ScheduleCalendar({
         requestAnimationFrame(() => resolve()),
       );
     },
-    [eventsById, itemsById, clearRange],
+    [eventsById, clearRange],
   );
+  useEffect(() => {
+    const onDocClick = (event: MouseEvent) => {
+      const btn = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+        "[data-range-toggle]",
+      );
+      if (!btn) return;
+      const id = btn.dataset.rangeToggle;
+      if (!id) return;
+      event.preventDefault();
+      if (selectedId.current === id) {
+        clearRange();
+        btn.textContent = "Show delivery range on calendar";
+      } else {
+        void revealRange(id);
+        btn.textContent = "Hide delivery range";
+      }
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [clearRange, revealRange]);
+
+  const activeItem = activeId ? itemsById.get(activeId) : null;
+  const expandedItem = expandedId ? itemsById.get(expandedId) : null;
+
   const config = useMemo<BryntumCalendarProps>(
     () => ({
       project,
       readOnly: true,
-      date: new Date(now),
-      timeZone: "UTC",
+      date: new Date(toLocalCalendarDate(now)),
       height: "auto",
       sidebar: false,
       mode: "month",
@@ -137,6 +183,19 @@ export default function ScheduleCalendar({
         flex: 1,
         width: "100%",
         layout: { animateCardChange: false },
+      },
+      eventRenderer: ({
+        eventRecord,
+      }: {
+        eventRecord: { id: string | number; name: string };
+      }) => {
+        const item = itemsById.get(String(eventRecord.id));
+        const encode = StringHelper.encodeHtml;
+        if (!item) return encode(eventRecord.name);
+        const prefix = item.tentative
+          ? `<span class="gcal-pill-badge">Tentative</span><span class="sr-only"> · </span>`
+          : "";
+        return `<span class="gcal-pill-body">${prefix}<strong class="gcal-pill-title">${encode(item.title)}</strong><span class="gcal-pill-project"> · ${encode(item.projectName)}</span></span>`;
       },
       modes: {
         day: false,
@@ -165,22 +224,7 @@ export default function ScheduleCalendar({
       },
       onEventClick: ({ eventRecord }) => {
         const id = String(eventRecord.id);
-        if (
-          calendar.current?.instance.mode !== "month" ||
-          selectedId.current === id
-        )
-          return;
-        // Let Bryntum open its card against the final, expanded event element.
-        // Cancelling this first notification avoids anchoring to a removed cell.
-        void revealRange(id).then(() => {
-          if (selectedId.current !== id) return;
-          calendar.current?.instance.element
-            .querySelector<HTMLElement>(
-              `.b-month-view .b-weeks-container .b-cal-event-wrap:not(.b-overflow)[data-event-id="${CSS.escape(id)}"]`,
-            )
-            ?.click();
-        });
-        return false;
+        setActiveId(id);
       },
       onEventKeyDown: ({ domEvent, eventElement }) => {
         const key = (domEvent as KeyboardEvent).key;
@@ -190,7 +234,10 @@ export default function ScheduleCalendar({
           eventElement.click();
         }
       },
-      onScheduleClick: () => clearRange(),
+      onScheduleClick: () => {
+        clearRange();
+        setActiveId(null);
+      },
       onActiveItemChange: ({ source }) => {
         const wasMonth = presentationMode.current === "month";
         const isMonth = source.mode === "month";
@@ -200,6 +247,7 @@ export default function ScheduleCalendar({
           store.beginBatch();
           try {
             clearRange();
+            setActiveId(null);
             for (const event of fullEvents) {
               const record = store.getById(event.id);
               const presentation = isMonth ? markersById.get(event.id)! : event;
@@ -218,11 +266,12 @@ export default function ScheduleCalendar({
         showOn: "click",
         tooltip: {
           cls: "dealmile-event-tip",
+          scrollable: true,
           scrollAction: "realign",
           hideDelay: false,
           hideOnDelegateChange: false,
-          maxWidth: "min(420px, calc(100vw - 32px))",
-          maxHeight: "min(560px, calc(100dvh - 32px))",
+          maxWidth: "min(420px, calc(100vw - 24px))",
+          maxHeight: "min(480px, calc(100dvh - 24px))",
         },
         titleRenderer: (record) => {
           const item = itemsById.get(String(record.id));
@@ -237,14 +286,23 @@ export default function ScheduleCalendar({
               ? "Estimated start · confirmed deadline"
               : "Tentative · subject to agreement and project readiness"
             : "Confirmed delivery window";
-          const href = `/developer/projects/${encodeURIComponent(item.projectId)}#milestone-${encodeURIComponent(item.id)}`;
+          const href = `${clientView ? "/projects" : "/developer/projects"}/${encodeURIComponent(item.projectId)}#milestone-${encodeURIComponent(item.id)}`;
+          const isExpanded = selectedId.current === item.id;
+          const showRangeToggle = presentationMode.current === "month";
           return `<div class="schedule-event-details">
             <p class="schedule-event-project">${encode(item.projectName)}${item.additionalScope ? " · Additional scope" : ""}</p>
             <p class="schedule-event-status">${encode(workLabel(item, Date.parse(now)))}</p>
             <p class="schedule-event-description">${encode(item.description)}</p>
             <dl><div><dt>Delivery window</dt><dd>${scheduleDate(item.startAt)} – ${scheduleDate(item.endAt)} · UTC</dd></div></dl>
             <p class="schedule-event-note">${windowLabel}</p>
-            <a class="schedule-event-link" href="${encode(href)}">Open milestone</a>
+            <div class="schedule-event-actions">
+              <a class="schedule-event-link" href="${encode(href)}">Open milestone</a>
+              ${
+                showRangeToggle
+                  ? `<button type="button" class="schedule-event-range-btn" data-range-toggle="${encode(item.id)}">${isExpanded ? "Hide delivery range" : "Show delivery range on calendar"}</button>`
+                  : ""
+              }
+            </div>
           </div>`;
         },
       },
@@ -254,47 +312,56 @@ export default function ScheduleCalendar({
       dragFeature: false,
       eventCopyPasteFeature: false,
     }),
-    [
-      itemsById,
-      markersById,
-      tintDays,
-      now,
-      fullEvents,
-      revealRange,
-      clearRange,
-    ],
+    [itemsById, markersById, tintDays, now, fullEvents, clearRange, clientView],
   );
   return (
     <div className="dealmile-calendar">
       <div className="schedule-range-controls" data-mode={visibleMode}>
         <p role="status">
           {visibleMode === "month"
-            ? selectedTitle
-              ? `Showing the delivery range for ${selectedTitle}.`
-              : "Milestones appear on their deadline or estimated finish date. Select a marker to reveal its delivery range."
+            ? expandedItem
+              ? `Showing full delivery range for ${expandedItem.title} (${scheduleDate(expandedItem.startAt)} – ${scheduleDate(expandedItem.endAt)} · UTC).`
+              : activeItem
+                ? `Selected: ${activeItem.title} · ${activeItem.projectName} (${scheduleDate(activeItem.startAt)} – ${scheduleDate(activeItem.endAt)} · UTC).`
+                : "Milestones appear as markers on their deadline or estimated finish date. Click a marker to inspect details."
             : "This view shows full milestone delivery ranges."}
         </p>
-        {selectedTitle && (
-          <Button
-            type="button"
-            variant="outline"
-            size="small"
-            onClick={() => {
-              const id = selectedId.current;
-              clearRange();
-              if (id) {
-                requestAnimationFrame(() => {
-                  calendar.current?.instance.element
-                    .querySelector<HTMLElement>(
-                      `[data-event-id="${CSS.escape(id)}"]`,
-                    )
-                    ?.focus();
-                });
-              }
-            }}
-          >
-            Hide delivery range
-          </Button>
+        {visibleMode === "month" && (expandedItem || activeItem) && (
+          <div className="schedule-range-buttons">
+            {expandedItem ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="small"
+                onClick={() => {
+                  const id = selectedId.current;
+                  clearRange();
+                  if (id) {
+                    requestAnimationFrame(() => {
+                      calendar.current?.instance.element
+                        .querySelector<HTMLElement>(
+                          `[data-event-id="${CSS.escape(id)}"]`,
+                        )
+                        ?.focus();
+                    });
+                  }
+                }}
+              >
+                Hide delivery range
+              </Button>
+            ) : (
+              activeItem && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="small"
+                  onClick={() => void revealRange(activeItem.id)}
+                >
+                  Show delivery range
+                </Button>
+              )
+            )}
+          </div>
         )}
       </div>
       <BryntumCalendarProjectModel ref={project} {...projectConfig} />

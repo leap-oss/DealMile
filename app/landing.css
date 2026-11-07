@@ -1202,6 +1202,9 @@
   .hallmark-landing .public-header .brand {
     font-size: 1.125rem;
   }
+  .hallmark-landing .header-actions {
+    gap: 12px;
+  }
   .hallmark-landing .hero h1 {
     font-size: clamp(2.75rem, 10vw, 3.5rem);
   }

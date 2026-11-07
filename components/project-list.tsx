@@ -13,6 +13,7 @@ import {
 } from "react";
 import { ArrowRight, FileText, Search } from "lucide-react";
 import {
+  formatProjectCurrency,
   formatProjectDate,
   projectStatusLabel,
   type ProjectListItem,
@@ -81,6 +82,23 @@ function ProjectRows({ rows }: { rows: ProjectGridRow[] }) {
           <div className="project-row-copy">
             <strong>{project.name}</strong>
             <p>{project.nextStep}</p>
+            {typeof project.budgetAmount === "number" && (
+              <p className="project-row-meta">
+                <span>
+                  {formatProjectCurrency(
+                    project.budgetAmount,
+                    project.currency ?? "USD",
+                  )}
+                </span>
+                {typeof project.totalMilestones === "number" && (
+                  <span>
+                    · {project.completedMilestones ?? 0}/
+                    {project.totalMilestones} milestones
+                  </span>
+                )}
+                {project.counterparty && <span>· {project.counterparty}</span>}
+              </p>
+            )}
           </div>
           <StatusBadge status={project.status} />
           <time dateTime={project.updatedAt}>
@@ -124,7 +142,10 @@ export function ProjectList({
       .filter(
         (project) =>
           (status === "all" || project.status === status) &&
-          project.name.toLocaleLowerCase("en-US").includes(query),
+          (project.name.toLocaleLowerCase("en-US").includes(query) ||
+            (project.counterparty ?? "")
+              .toLocaleLowerCase("en-US")
+              .includes(query)),
       )
       .map((project) => ({
         ...project,
@@ -132,10 +153,19 @@ export function ProjectList({
         href: `${developer ? "/developer/projects" : "/projects"}/${project.id}`,
       }))
       .sort((left, right) => {
-        const comparison = projectCollator.compare(
-          left[sort.field],
-          right[sort.field],
-        );
+        let comparison = 0;
+        if (sort.field === "budgetAmount") {
+          comparison = (left.budgetAmount ?? 0) - (right.budgetAmount ?? 0);
+        } else if (sort.field === "deadline") {
+          comparison = (left.deadline ?? "").localeCompare(
+            right.deadline ?? "",
+          );
+        } else {
+          comparison = projectCollator.compare(
+            String(left[sort.field] ?? ""),
+            String(right[sort.field] ?? ""),
+          );
+        }
         return (
           (sort.direction === "asc" ? comparison : -comparison) ||
           left.id.localeCompare(right.id)
@@ -164,7 +194,7 @@ export function ProjectList({
             <input
               id={`${id}-search`}
               type="search"
-              placeholder="Project name"
+              placeholder="Project or partner name"
               autoComplete="off"
               spellCheck={false}
               value={search}
@@ -206,6 +236,10 @@ export function ProjectList({
             <option value="name:desc">Project name Z–A</option>
             <option value="status:asc">Status A–Z</option>
             <option value="status:desc">Status Z–A</option>
+            <option value="budgetAmount:desc">Budget: high to low</option>
+            <option value="budgetAmount:asc">Budget: low to high</option>
+            <option value="deadline:asc">Nearest deadline</option>
+            <option value="deadline:desc">Latest deadline</option>
           </select>
         </div>
         {(search || status !== "all") && (

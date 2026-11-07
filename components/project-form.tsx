@@ -105,6 +105,10 @@ export function ProjectForm({
     () => milestones.reduce((n, m) => n + (Number(m.amount) || 0), 0),
     [milestones],
   );
+  const totalDays = useMemo(
+    () => milestones.reduce((n, m) => n + (Number(m.estimatedDays) || 0), 0),
+    [milestones],
+  );
   return (
     <form
       action={projectId ? action : generateAction}
@@ -399,7 +403,7 @@ export function ProjectForm({
                 <div className="budget-check">
                   <span>
                     Allocated to {milestones.length} milestone
-                    {milestones.length !== 1 ? "s" : ""}
+                    {milestones.length !== 1 ? "s" : ""} · {totalDays} est. days
                   </span>
                   <strong>
                     {new Intl.NumberFormat("en-US", {
@@ -411,8 +415,35 @@ export function ProjectForm({
                     {Math.round(total * 100) ===
                       Math.round(Number(details.budget) * 100) && total > 0
                       ? "Matches your budget"
-                      : "Milestone amounts must match your budget."}
+                      : (() => {
+                          const diff =
+                            (Math.round(Number(details.budget || 0) * 100) -
+                              Math.round(total * 100)) /
+                            100;
+                          const formatted = new Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          }).format(Math.abs(diff));
+                          return diff > 0
+                            ? `Milestone amounts must match your budget (${formatted} left to allocate).`
+                            : `Milestone amounts must match your budget (${formatted} over budget).`;
+                        })()}
                   </small>
+                  {total > 0 &&
+                    Math.round(total * 100) !==
+                      Math.round(Number(details.budget) * 100) && (
+                      <button
+                        type="button"
+                        className="text-link budget-sync-btn"
+                        onClick={() => update("budget", String(total))}
+                      >
+                        Match total budget to{" "}
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(total)}
+                      </button>
+                    )}
                 </div>
               )}
               <p className="field-hint">

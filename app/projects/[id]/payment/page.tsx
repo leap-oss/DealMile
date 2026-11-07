@@ -123,11 +123,18 @@ export default async function Page({
                 <AwaitCaptureConfirmation orderId={payment.paypalOrderId!} />
               ) : (
                 <>
-                  <p>
-                    Confirm to capture the order you approved in PayPal Sandbox.
-                    DealMile verifies the amount, currency, recipient, and
-                    milestone before confirming payment.
-                  </p>
+                  <div className="review-banner">
+                    <ShieldCheck size={20} />
+                    <div>
+                      <strong>Step 2 of 2 · Confirm capture in DealMile</strong>
+                      <p>
+                        Your PayPal Sandbox approval is ready, but no funds are
+                        captured until you confirm below. DealMile verifies the
+                        amount, currency, recipient, and milestone before
+                        confirming payment.
+                      </p>
+                    </div>
+                  </div>
                   <CaptureButton orderId={payment.paypalOrderId!} />
                 </>
               )}

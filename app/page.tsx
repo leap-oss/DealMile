@@ -17,6 +17,7 @@ import { AgreementPreview } from "@/components/agreement-preview";
 import { WorkflowPreview } from "@/components/workflow-preview";
 import { buttonVariants } from "@/components/ui/button";
 import { PrincipleMarquee } from "@/components/principle-marquee";
+import { getUser } from "@/lib/auth/session";
 const landingFont = Geist({
   subsets: ["latin"],
   variable: "--dm-geist",
@@ -50,7 +51,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export default function Home() {
+export default async function Home() {
+  const user = await getUser().catch(() => null);
+  const dashboardHref = user
+    ? user.role === "CLIENT"
+      ? "/dashboard"
+      : "/developer"
+    : null;
   return (
     <div
       className={`landing-page hallmark-landing ${landingFont.variable} ${landingMono.variable} ${landingDisplay.variable}`}
@@ -67,12 +74,26 @@ export default function Home() {
             <a href="#built-for">Who it’s for</a>
           </nav>
           <div className="header-actions">
-            <Link
-              href="/register"
-              className={buttonVariants({ size: "small" })}
-            >
-              Create account <ArrowRight size={15} />
-            </Link>
+            {dashboardHref ? (
+              <Link
+                href={dashboardHref}
+                className={buttonVariants({ size: "small" })}
+              >
+                Go to dashboard <ArrowRight size={15} />
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="sign-in">
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  className={buttonVariants({ size: "small" })}
+                >
+                  Create account <ArrowRight size={15} />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -92,9 +113,15 @@ export default function Home() {
               PayPal Sandbox before its work starts.
             </p>
             <div className="hero-actions">
-              <Link href="/register" className={buttonVariants()}>
-                Create account <ArrowUpRight size={18} />
-              </Link>
+              {dashboardHref ? (
+                <Link href={dashboardHref} className={buttonVariants()}>
+                  Go to dashboard <ArrowUpRight size={18} />
+                </Link>
+              ) : (
+                <Link href="/register" className={buttonVariants()}>
+                  Create account <ArrowUpRight size={18} />
+                </Link>
+              )}
               <a href="#how-it-works" className="text-link">
                 See how it works <ArrowRight size={17} />
               </a>
@@ -300,9 +327,15 @@ export default function Home() {
             </h2>
           </div>
           <div>
-            <Link href="/register" className={buttonVariants()}>
-              Create account <MoveUpRight size={19} />
-            </Link>
+            {dashboardHref ? (
+              <Link href={dashboardHref} className={buttonVariants()}>
+                Go to dashboard <MoveUpRight size={19} />
+              </Link>
+            ) : (
+              <Link href="/register" className={buttonVariants()}>
+                Create account <MoveUpRight size={19} />
+              </Link>
+            )}
             <p>PayPal Sandbox only · No real money moves</p>
           </div>
         </section>

@@ -20,6 +20,79 @@ import { ProjectActions } from "@/components/project-actions";
 import { DeliveryFollowup } from "@/components/delivery-followup";
 import { recordDeliveryReminders } from "@/lib/delivery/service";
 import { ProjectCancellation } from "@/components/project-cancellation";
+import ProjectLedgerGrid, {
+  type LedgerMilestoneRow,
+} from "@/components/project-ledger-grid";
+import { projectSchedule } from "@/lib/schedule/project";
+import { formatProjectCurrency, projectStatusLabel } from "@/lib/projects/list";
+
+type RevisionSnapshot = {
+  budget?: number;
+  deadline?: string;
+  scope?: string[];
+  milestones?: {
+    title?: string;
+    description?: string;
+    amount?: number;
+    estimatedDays?: number;
+  }[];
+};
+
+function RevisionSnapshotView({
+  snapshot,
+  currency,
+}: {
+  snapshot: unknown;
+  currency: string;
+}) {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const data = snapshot as RevisionSnapshot;
+  const milestones = Array.isArray(data.milestones) ? data.milestones : [];
+  const scope = Array.isArray(data.scope) ? data.scope : [];
+  return (
+    <div className="revision-snapshot-card">
+      <div className="revision-snapshot-meta">
+        {typeof data.budget === "number" && (
+          <span>
+            <strong>Budget:</strong>{" "}
+            {formatProjectCurrency(data.budget, currency)}
+          </span>
+        )}
+        {typeof data.deadline === "string" && (
+          <span>
+            <strong>Deadline:</strong> {data.deadline} · UTC
+          </span>
+        )}
+        <span>
+          <strong>Milestones:</strong> {milestones.length}
+        </span>
+      </div>
+      {scope.length > 0 && (
+        <ul className="revision-scope-list">
+          {scope.map((item, idx) => (
+            <li key={idx}>{String(item)}</li>
+          ))}
+        </ul>
+      )}
+      {milestones.length > 0 && (
+        <div className="revision-milestones-list">
+          {milestones.map((m, idx) => (
+            <div key={idx} className="revision-milestone-row">
+              <span>
+                {String(idx + 1).padStart(2, "0")}. {m.title ?? "Milestone"}
+              </span>
+              <span>
+                {m.estimatedDays ?? 1}d ·{" "}
+                {formatProjectCurrency(Number(m.amount ?? 0), currency)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export async function ProjectWorkspace({
   id,
   developer = false,
@@ -56,6 +129,7 @@ export async function ProjectWorkspace({
   });
   if (!project) notFound();
   await recordDeliveryReminders([id]);
+  const now = new Date();
   const agreed = ["AGREED", "ACTIVE", "COMPLETED"].includes(project.status);
   const editing =
     !project.paymentHold &&
@@ -85,6 +159,67 @@ export async function ProjectWorkspace({
   const nextMilestone = project.milestones.find(
     (milestone) => !["COMPLETED", "CANCELLED"].includes(milestone.status),
   );
+  const scheduleItems = projectSchedule(
+    {
+      id: project.id,
+      name: project.name,
+      paymentHold: project.paymentHold,
+      milestones: project.milestones.map((m) => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        status: m.status,
+        estimatedDays: m.estimatedDays,
+        dueAt: m.dueAt,
+        change: m.change,
+        payments: m.payments
+          .filter((p) => p.verifiedAt && p.paypalCaptureId)
+          .map((p) => ({
+            verifiedAt: p.verifiedAt,
+            paypalCaptureId: p.paypalCaptureId,
+          })),
+      })),
+    },
+    now.getTime(),
+  );
+  const ledgerRows: LedgerMilestoneRow[] = project.milestones.map((m, i) => {
+    const capturedPayment = m.payments.find(
+      (p) => p.status === "CAPTURED" && p.verifiedAt && p.paypalCaptureId,
+    );
+    const refundedPayment = m.payments.find(
+      (p) => p.status === "REFUNDED" && p.refundVerifiedAt && p.paypalRefundId,
+    );
+    const pendingOrder = m.payments.find((p) => p.paypalOrderId);
+    const verificationState = refundedPayment
+      ? "Verified refund"
+      : capturedPayment
+        ? "Verified capture"
+        : pendingOrder
+          ? "Checkout created"
+          : "Unfunded";
+    const paypalReference = refundedPayment
+      ? `Refund ${refundedPayment.paypalRefundId}`
+      : capturedPayment
+        ? `Capture ${capturedPayment.paypalCaptureId}`
+        : pendingOrder?.paypalOrderId
+          ? `Order ${pendingOrder.paypalOrderId}`
+          : "Awaiting milestone readiness";
+    return {
+      id: m.id,
+      step: String(i + 1).padStart(2, "0"),
+      title: m.title,
+      stageLabel: projectStatusLabel(m.status),
+      estimatedDays: m.estimatedDays,
+      dueAt: m.dueAt?.toISOString() ?? null,
+      amount: Number(m.amount),
+      fundedAmount: capturedPayment ? Number(capturedPayment.amount) : 0,
+      refundedAmount: refundedPayment ? Number(refundedPayment.amount) : 0,
+      currency: project.currency,
+      verificationState,
+      paypalReference,
+      additionalScope: m.change?.status === "APPROVED",
+    };
+  });
   return (
     <WorkspaceShell user={user}>
       <Link
@@ -146,7 +281,15 @@ export async function ProjectWorkspace({
           {agreed && project.status !== "COMPLETED" && (
             <p className="field-hint">
               Each milestone below shows its current status and available
-              actions. New requirements go in Scope intelligence.
+              actions. New requirements go in Scope intelligence.{" "}
+              {nextMilestone && (
+                <a
+                  href={`#milestone-${nextMilestone.id}`}
+                  className="text-link"
+                >
+                  Jump to active milestone →
+                </a>
+              )}
             </p>
           )}
         </section>
@@ -253,11 +396,13 @@ export async function ProjectWorkspace({
           </Link>
         )}
       </div>
-      {developer && (
-        <Link href="/developer/schedule" className="back-link">
-          View your work schedule →
-        </Link>
-      )}
+      <Link
+        href={developer ? "/developer/schedule" : "/schedule"}
+        preloadCalendar
+        className="back-link"
+      >
+        View your work schedule →
+      </Link>
       <div className="project-content-grid">
         <div>
           <section className="editor-section">
@@ -272,6 +417,13 @@ export async function ProjectWorkspace({
               ))}
             </ul>
           </section>
+          <ProjectLedgerGrid
+            projectName={project.name}
+            rows={ledgerRows}
+            scheduleItems={scheduleItems}
+            now={now.toISOString()}
+            developer={developer}
+          />
           <section className="editor-section">
             <div className="panel-heading inline-panel">
               <h2>Milestones</h2>
@@ -402,7 +554,10 @@ export async function ProjectWorkspace({
                       <span>{r.acceptedAt ? "Approved" : "Proposed"}</span>
                     </summary>
                     <p>{r.summary}</p>
-                    <pre>{JSON.stringify(r.snapshot, null, 2)}</pre>
+                    <RevisionSnapshotView
+                      snapshot={r.snapshot}
+                      currency={project.currency}
+                    />
                   </details>
                 ))
               ) : (

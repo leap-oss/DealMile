@@ -36,6 +36,13 @@ export function MilestoneControls({
             />
           </div>
         )}
+        {!developer && status === "SUBMITTED" && (
+          <p className="field-hint">
+            Approving completes this milestone and unlocks the next step.
+            Requesting a revision returns this milestone to in-progress so your
+            developer can update the submission.
+          </p>
+        )}
         <div className="work-buttons">
           <Button
             name="action"

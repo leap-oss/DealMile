@@ -88,10 +88,20 @@ export function calendarEvents(items: ScheduleItem[], now = Date.now()) {
         midnight(Date.parse(item.startAt)),
       ).toISOString();
       const label = workLabel(item, now);
+      const toneCls =
+        label === "Overdue"
+          ? "schedule-overdue"
+          : item.status === "COMPLETED"
+            ? "schedule-completed"
+            : item.paused
+              ? "schedule-paused"
+              : item.tentative
+                ? "schedule-tentative"
+                : "schedule-confirmed";
       return {
         id: item.id,
         name: `${item.tentative ? "Tentative · " : ""}${item.title} · ${item.projectName}`,
-        cls: item.tentative ? "schedule-tentative" : "schedule-confirmed",
+        cls: `${item.tentative ? "schedule-tentative" : "schedule-confirmed"} ${toneCls}`,
         startDate,
         endDate: new Date(midnight(Date.parse(item.endAt)) + DAY).toISOString(),
         allDay: true,

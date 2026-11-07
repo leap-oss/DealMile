@@ -49,6 +49,7 @@ export async function deliveryAction(
   }
 }
 function refresh(id: string) {
+  revalidatePath("/schedule");
   revalidatePath("/developer/schedule");
   revalidatePath(`/projects/${id}`);
   revalidatePath(`/projects/${id}/payment`);

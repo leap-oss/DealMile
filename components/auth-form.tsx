@@ -23,6 +23,7 @@ export function AuthForm({
     {},
   );
   const [visible, setVisible] = useState(false);
+  const [passwordLength, setPasswordLength] = useState(0);
   const signUp = mode === "register";
   const role = state.values?.role ?? defaultRole;
   const form = useRef<HTMLFormElement>(null);
@@ -138,6 +139,7 @@ export function AuthForm({
               required
               minLength={signUp ? 12 : 1}
               maxLength={128}
+              onChange={(e) => setPasswordLength(e.target.value.length)}
               aria-invalid={!!state.fields?.password}
               aria-describedby={describedBy(
                 "password",
@@ -160,7 +162,11 @@ export function AuthForm({
           </div>
           {signUp && (
             <small id="password-hint" className="field-hint">
-              Use 12 or more characters. A passphrase works well.
+              {passwordLength === 0
+                ? "Use 12 or more characters. A passphrase works well."
+                : passwordLength < 12
+                  ? `Use 12 or more characters (${passwordLength}/12 — add ${12 - passwordLength} more).`
+                  : `Use 12 or more characters (${passwordLength}/12 — ready).`}
             </small>
           )}
           {fieldError("password")}
