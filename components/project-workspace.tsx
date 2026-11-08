@@ -16,7 +16,10 @@ import { PayButton } from "@/components/payment-controls";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MilestoneControls } from "@/components/milestone-controls";
 import { ScopeIntelligence } from "@/components/scope-intelligence";
-import { ProjectActions } from "@/components/project-actions";
+import {
+  DeleteProjectButton,
+  ProjectActions,
+} from "@/components/project-actions";
 import { DeliveryFollowup } from "@/components/delivery-followup";
 import { recordDeliveryReminders } from "@/lib/delivery/service";
 import { ProjectCancellation } from "@/components/project-cancellation";
@@ -135,6 +138,7 @@ export async function ProjectWorkspace({
     !project.paymentHold &&
     ((!developer && project.status === "DRAFT") ||
       (developer && project.status === "DEVELOPER_REVIEW"));
+  const canDelete = ["REJECTED", "CANCELLED"].includes(project.status);
   const actions = developer
     ? project.status === "PENDING_DEVELOPER_REVIEW"
       ? [{ value: "review", label: "Start review" }]
@@ -394,6 +398,9 @@ export async function ProjectWorkspace({
             <Pencil size={15} />
             {developer ? "Revise proposal" : "Edit draft"}
           </Link>
+        )}
+        {canDelete && (
+          <DeleteProjectButton id={id} projectName={project.name} />
         )}
       </div>
       <Link

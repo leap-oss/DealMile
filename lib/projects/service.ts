@@ -247,3 +247,35 @@ export async function mutateProject(
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
 }
+
+export const DELETABLE_PROJECT_STATUSES: ProjectStatus[] = [
+  "REJECTED",
+  "CANCELLED",
+];
+
+export async function deleteProject(actor: Actor, projectId: string) {
+  return db().$transaction(async (tx) => {
+    const project = await tx.project.findFirst({
+      where: {
+        id: projectId,
+        ...(actor.role === "CLIENT"
+          ? { clientId: actor.id }
+          : { developerId: actor.id }),
+      },
+      select: { id: true, status: true },
+    });
+    if (!project) throw new ProjectError("Project unavailable.");
+    if (!DELETABLE_PROJECT_STATUSES.includes(project.status)) {
+      throw new ProjectError(
+        "Only rejected or cancelled projects can be deleted.",
+      );
+    }
+    await tx.aIAnalysis.deleteMany({ where: { projectId } });
+    await tx.changeRequest.deleteMany({ where: { projectId } });
+    await tx.cancellationRequest.deleteMany({ where: { projectId } });
+    await tx.payment.deleteMany({
+      where: { milestone: { projectId } },
+    });
+    await tx.project.delete({ where: { id: projectId } });
+  });
+}

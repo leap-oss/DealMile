@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
 import {
   createProject,
+  deleteProject,
   mutateProject,
   ProjectError,
 } from "@/lib/projects/service";
@@ -92,6 +93,24 @@ export async function projectAction(
   revalidatePath("/dashboard");
   revalidatePath("/developer");
   return { success: "Project updated." };
+}
+
+export async function deleteProjectAction(
+  _state: ProjectFormState,
+  form: FormData,
+): Promise<ProjectFormState> {
+  const user = await requireUser();
+  const id = String(form.get("projectId") ?? "");
+  try {
+    await deleteProject(user, id);
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/dashboard");
+  revalidatePath("/developer");
+  revalidatePath("/schedule");
+  revalidatePath("/developer/schedule");
+  redirect(user.role === "CLIENT" ? "/dashboard" : "/developer");
 }
 
 export async function generateProjectPlan(
